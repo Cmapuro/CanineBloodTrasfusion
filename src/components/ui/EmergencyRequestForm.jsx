@@ -13,6 +13,8 @@ export function EmergencyRequestForm({ onSubmit, loading = false }) {
     quantity: '',
     urgencyLevel: 'high',
     patientName: '',
+    patientBreed: '',
+    patientWeightKg: '',
     reason: '',
     contactPerson: '',
     contactPhone: '',
@@ -64,6 +66,8 @@ export function EmergencyRequestForm({ onSubmit, loading = false }) {
         quantity: '',
         urgencyLevel: 'high',
         patientName: '',
+        patientBreed: '',
+        patientWeightKg: '',
         reason: '',
         contactPerson: '',
         contactPhone: '',
@@ -94,6 +98,17 @@ export function EmergencyRequestForm({ onSubmit, loading = false }) {
         {errors.bloodType && (
           <p className="text-red-600 text-sm mt-1">{errors.bloodType}</p>
         )}
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Patient Breed</label>
+          <input type="text" name="patientBreed" value={formData.patientBreed} onChange={handleChange} placeholder="e.g. Labrador Retriever" className="form-control" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Patient Weight (kg)</label>
+          <input type="number" min="0.1" step="0.1" name="patientWeightKg" value={formData.patientWeightKg} onChange={handleChange} placeholder="e.g. 24.5" className="form-control" />
+        </div>
       </div>
 
       {/* Quantity */}

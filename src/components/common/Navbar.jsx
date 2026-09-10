@@ -33,33 +33,34 @@ export function Navbar() {
   // Public navigation links
   const publicLinks = [
     { path: '/', label: 'Home' },
-    { path: '/search-blood', label: 'Search Blood' },
-    { path: '/hospitals', label: 'Hospitals' },
-    { path: '/emergency-request', label: 'Emergency' },
+    { path: '/search-blood', label: 'Find a Canine Donor' },
+    { path: '/hospitals', label: 'Veterinary Clinics' },
+    { path: '/emergency-request', label: 'Emergency Request' },
     { path: '/about', label: 'About' },
   ];
 
   // Donor navigation links
   const donorLinks = [
     { path: '/donor/dashboard', label: 'Dashboard' },
-    { path: '/donor/schedule-appointment', label: 'Schedule' },
-    { path: '/donor/donation-history', label: 'History' },
+    { path: '/donor/schedule-appointment', label: 'Donation Schedule' },
+    { path: '/donor/medical-health-record', label: 'Medical Health Record' },
+    { path: '/donor/donation-history', label: 'Transfusion History' },
     { path: '/donor/notifications', label: 'Notifications' },
   ];
 
   // Hospital navigation links
   const hospitalLinks = [
     { path: '/hospital/dashboard', label: 'Dashboard' },
-    { path: '/hospital/update-blood-availability', label: 'Blood Inventory' },
-    { path: '/hospital/emergency-broadcast', label: 'Emergency' },
+    { path: '/hospital/update-blood-availability', label: 'Donor Availability' },
+    { path: '/hospital/emergency-broadcast', label: 'Emergency Requests' },
   ];
 
   // Admin navigation links
   const adminLinks = [
     { path: '/admin/dashboard', label: 'Dashboard' },
-    { path: '/admin/manage-hospitals', label: 'Hospitals' },
-    { path: '/admin/manage-donors', label: 'Donors' },
-    { path: '/admin/blood-inventory', label: 'Inventory' },
+    { path: '/admin/manage-hospitals', label: 'Veterinary Clinics' },
+    { path: '/admin/manage-donors', label: 'Canine Donors' },
+    { path: '/admin/blood-inventory', label: 'DEA Inventory' },
   ];
 
   // Determine which links to show based on user role
@@ -86,7 +87,7 @@ export function Navbar() {
           <Link to="/" className="flex items-center gap-3">
             <LogoMark size="lg" className="shadow-sm" alt="Logo" />
             <span className="hidden sm:inline text-sm md:text-lg font-bold text-blood-red max-w-[560px] truncate">
-              Smart Blood System
+              CanineLink
             </span>
           </Link>
 
@@ -162,7 +163,7 @@ export function Navbar() {
                   to="/hospital/login"
                   className="btn-primary text-base px-4 py-2.5 whitespace-nowrap"
                 >
-                  Hospital Login
+                  Clinic Login
                 </Link>
               </>
             )}
@@ -207,7 +208,7 @@ export function Navbar() {
                     onClick={() => setMobileOpen(false)}
                     className="btn-primary w-full text-center"
                   >
-                    Hospital Login
+                    Clinic Login
                   </Link>
                 </>
               )}

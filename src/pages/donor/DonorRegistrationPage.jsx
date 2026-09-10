@@ -5,13 +5,15 @@ import { useContext } from 'react'
 import { NotificationContext } from '../../context/NotificationContext'
 import { generateDonorID } from '../../utils/generateDonorID'
 import { Modal } from '../../components/common/Modal'
+import { PasswordInput } from '../../components/common/PasswordInput'
 import { validateEmail, validatePassword, validatePhone, validateName, validateAge } from '../../utils/validators'
 import { BLOOD_TYPES } from '../../utils/bloodTypes'
+import { registerDonor } from '../../services/authService'
 
 /**
  * DonorRegistrationPage Component
- * Registration page for new donors
- * Features: form validation, auto-generated donor ID, blood type selection
+ * Registration page for a new canine donor
+ * Features: mock form validation, auto-generated donor ID, DEA compatibility selection
  */
 export function DonorRegistrationPage() {
   const navigate = useNavigate()
@@ -26,8 +28,11 @@ export function DonorRegistrationPage() {
     password: '',
     confirmPassword: '',
     age: '',
+    weight: '',
     gender: '',
     bloodType: '',
+    vaccinationStatus: '',
+    healthInformation: '',
     address: '',
     agreeTerms: false,
   })
@@ -72,17 +77,17 @@ export function DonorRegistrationPage() {
     if (!validatePhone(formData.phone)) {
       newErrors.phone = 'Phone number is invalid'
     }
-    if (!validatePassword(formData.password)) {
-      newErrors.password = 'Password must be at least 6 characters'
+    if (!formData.password || formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters'
     }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match'
     }
-    if (!validateAge(formData.age)) {
-      newErrors.age = 'Age must be between 16 and 65'
+    if (!formData.age || Number(formData.age) < 1 || Number(formData.age) > 15) {
+      newErrors.age = 'Dog age must be between 1 and 15 years'
     }
     if (!formData.bloodType) {
-      newErrors.bloodType = 'Please select your blood type'
+      newErrors.bloodType = 'Please select the DEA compatibility'
     }
     if (!formData.agreeTerms) {
       newErrors.agreeTerms = 'You must agree to terms and conditions'
@@ -104,29 +109,25 @@ export function DonorRegistrationPage() {
     setIsLoading(true)
 
     try {
-      // Generate donor ID
+      const response = await registerDonor({
+        full_name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+      })
       const donorID = generateDonorID()
       setGeneratedDonorID(donorID)
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      console.log('Registration data:', { ...formData, donorID })
-
       success(`Registration successful! Your Donor ID: ${donorID}`)
 
-      // Store user data
-      const userData = {
-        id: Math.random().toString(36).substr(2, 9),
-        donorID,
-        email: formData.email,
+      localStorage.setItem('authToken', response.token)
+      localStorage.setItem('user', JSON.stringify({
+        ...response.user,
+        id: response.user.user_id,
+        name: response.user.full_name,
         role: 'donor',
-        name: `${formData.firstName} ${formData.lastName}`,
-        loginTime: new Date(),
-      }
-
-      localStorage.setItem('user', JSON.stringify(userData))
-      localStorage.setItem('authToken', 'dummy-token')
+        donorID,
+      }))
 
       // Redirect to dashboard
       setTimeout(() => {
@@ -145,8 +146,8 @@ export function DonorRegistrationPage() {
         <div className="max-w-2xl mx-auto px-4">
           {/* Header */}
           <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-blood-red mb-2">Donor Registration</h1>
-            <p className="text-gray-600">Join our community and start saving lives</p>
+              <h1 className="text-4xl font-bold text-blood-red mb-2">Register Dog Donor</h1>
+              <p className="text-gray-600">Add a healthy canine donor to the CanineLink network</p>
           </div>
 
           {/* Card */}
@@ -154,15 +155,15 @@ export function DonorRegistrationPage() {
             {/* Progress Info */}
             <div className="mb-8 p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
-                <span className="font-semibold">Your Donor ID</span> will be auto-generated after registration
+                <span className="font-semibold">Your Canine Donor ID</span> will be auto-generated after registration
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name Row */}
+              {/* Dog identity */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Dog Name</label>
                   <input
                     type="text"
                     name="firstName"
@@ -173,7 +174,7 @@ export function DonorRegistrationPage() {
                   {errors.firstName && <p className="text-red-600 text-sm mt-1">{errors.firstName}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Breed</label>
                   <input
                     type="text"
                     name="lastName"
@@ -185,7 +186,7 @@ export function DonorRegistrationPage() {
                 </div>
               </div>
 
-              {/* Email */}
+              {/* Owner contact */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                 <input
@@ -211,7 +212,7 @@ export function DonorRegistrationPage() {
                 {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}
               </div>
 
-              {/* Age and Gender Row */}
+              {/* Age and sex */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
@@ -220,14 +221,14 @@ export function DonorRegistrationPage() {
                     name="age"
                     value={formData.age}
                     onChange={handleChange}
-                    min="16"
-                    max="65"
+                    min="1"
+                    max="15"
                     className={`form-control ${errors.age ? 'border-red-500' : ''}`}
                   />
                   {errors.age && <p className="text-red-600 text-sm mt-1">{errors.age}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Sex</label>
                   <select
                     name="gender"
                     value={formData.gender}
@@ -237,26 +238,45 @@ export function DonorRegistrationPage() {
                     <option value="">-- Select --</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
-                    <option value="other">Other</option>
                   </select>
                 </div>
               </div>
 
-              {/* Blood Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Blood Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                <input type="number" name="weight" value={formData.weight} onChange={handleChange} min="1" className="form-control" />
+              </div>
+
+              {/* DEA compatibility */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">DEA Blood Type Compatibility</label>
                 <select
                   name="bloodType"
                   value={formData.bloodType}
                   onChange={handleChange}
                   className={`form-control ${errors.bloodType ? 'border-red-500' : ''}`}
                 >
-                  <option value="">-- Select blood type --</option>
+                  <option value="">-- Select DEA compatibility --</option>
                   {BLOOD_TYPES.map((type) => (
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
                 {errors.bloodType && <p className="text-red-600 text-sm mt-1">{errors.bloodType}</p>}
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Vaccination Status</label>
+                  <select name="vaccinationStatus" value={formData.vaccinationStatus} onChange={handleChange} className="form-control">
+                    <option value="">-- Select status --</option>
+                    <option value="up-to-date">Up to date</option>
+                    <option value="due-soon">Due soon</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Health Information</label>
+                  <input type="text" name="healthInformation" value={formData.healthInformation} onChange={handleChange} placeholder="Recent health notes" className="form-control" />
+                </div>
               </div>
 
               {/* Address */}
@@ -275,23 +295,23 @@ export function DonorRegistrationPage() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
                     className={`form-control ${errors.password ? 'border-red-500' : ''}`}
+                    required
                   />
                   {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     className={`form-control ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                    required
                   />
                   {errors.confirmPassword && <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>}
                 </div>

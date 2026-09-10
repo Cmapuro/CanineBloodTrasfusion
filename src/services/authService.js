@@ -12,12 +12,11 @@ import apiClient from './api'
  * @param {string} role - User role (donor, hospital, admin)
  * @returns {Promise} Login response with user data and token
  */
-export const loginUser = async (email, password, role) => {
+export const loginUser = async (email, password) => {
   try {
     const response = await apiClient.post('/auth/login', {
       email,
       password,
-      role,
     })
 
     // Store token in localStorage
@@ -38,7 +37,10 @@ export const loginUser = async (email, password, role) => {
  */
 export const registerDonor = async (userData) => {
   try {
-    const response = await apiClient.post('/auth/register/donor', userData)
+    const response = await apiClient.post('/auth/register', {
+      ...userData,
+      role: 'dog_owner',
+    })
     return response.data
   } catch (error) {
     throw error.response?.data || error
@@ -52,7 +54,10 @@ export const registerDonor = async (userData) => {
  */
 export const registerHospital = async (hospitalData) => {
   try {
-    const response = await apiClient.post('/auth/register/hospital', hospitalData)
+    const response = await apiClient.post('/auth/register', {
+      ...hospitalData,
+      role: 'clinic_admin',
+    })
     return response.data
   } catch (error) {
     throw error.response?.data || error
@@ -64,8 +69,10 @@ export const registerHospital = async (hospitalData) => {
  * Clears authentication token
  */
 export const logoutUser = () => {
-  localStorage.removeItem('authToken')
-  localStorage.removeItem('user')
+  return apiClient.post('/auth/logout').finally(() => {
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('user')
+  })
 }
 
 /**
@@ -74,7 +81,7 @@ export const logoutUser = () => {
  */
 export const getCurrentUser = async () => {
   try {
-    const response = await apiClient.get('/auth/me')
+    const response = await apiClient.get('/me')
     return response.data
   } catch (error) {
     throw error.response?.data || error

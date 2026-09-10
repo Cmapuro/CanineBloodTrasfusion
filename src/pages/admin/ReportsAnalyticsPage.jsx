@@ -45,7 +45,7 @@ export function ReportsAnalyticsPage() {
         />
 
         <AnalyticsBarChart
-          title="Blood Type Distribution"
+          title="DEA Compatibility Distribution"
           subtitle="Current availability by blood type"
           data={bloodTypeDistribution}
           formatter={(value) => `${value}`}

@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useContext } from 'react'
 import { NotificationContext } from '../../context/NotificationContext'
 import { LogoMark } from '../../components/common/LogoMark'
+import { PasswordInput } from '../../components/common/PasswordInput'
 
 /**
  * DonorLoginPage Component
@@ -92,7 +93,7 @@ export function DonorLoginPage() {
                 <div className="w-16 h-16 bg-blood-light rounded-full flex items-center justify-center mx-auto mb-4">
                   <LogoMark size="md" className="border border-red-100" alt="Donor login logo" />
                 </div>
-                <h1 className="text-2xl font-bold text-gray-900">Donor Login</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Login</h1>
                 <p className="text-gray-600 text-sm mt-2">
                   Sign in to your donor account
                 </p>
@@ -128,13 +129,11 @@ export function DonorLoginPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Password
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Enter your password"
-                    className="form-control"
                     required
                   />
                 </div>
@@ -179,7 +178,7 @@ export function DonorLoginPage() {
                     to="/hospital/login"
                     className="flex-1 btn-secondary text-center text-sm"
                   >
-                    Hospital Login
+                    Clinic Login
                   </Link>
                   <Link
                     to="/admin/login"

@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useContext } from 'react'
 import { NotificationContext } from '../../context/NotificationContext'
 import { LogoMark } from '../../components/common/LogoMark'
+import { PasswordInput } from '../../components/common/PasswordInput'
 
 /**
  * AdminLoginPage Component
@@ -90,13 +91,11 @@ export function AdminLoginPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Enter password"
-                    className="form-control"
                     required
                   />
                 </div>
@@ -113,7 +112,7 @@ export function AdminLoginPage() {
                     Donor Login
                   </Link>
                   <Link to="/hospital/login" className="flex-1 btn-secondary text-center text-sm">
-                    Hospital Login
+                    Clinic Login
                   </Link>
                 </div>
               </div>

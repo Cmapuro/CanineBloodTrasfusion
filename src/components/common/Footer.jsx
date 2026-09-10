@@ -53,10 +53,10 @@ export function Footer() {
           <div>
             <div className="flex items-center gap-3 mb-4">
               <LogoMark size="md" className="border border-white/30" alt="Footer logo" />
-              <h3 className="text-lg font-bold tracking-wide">Smart Blood Donation</h3>
+              <h3 className="text-lg font-bold tracking-wide">CanineLink</h3>
             </div>
             <p className="text-gray-100/85 text-sm leading-relaxed max-w-sm">
-              Coordinating blood donation and availability in real-time for hospitals and donors.
+              Coordinating canine blood donors and emergency transfusions across the veterinary network.
             </p>
           </div>
 

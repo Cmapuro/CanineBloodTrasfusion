@@ -98,6 +98,15 @@ export const broadcastEmergencyRequest = async (hospitalID, requestData) => {
   }
 }
 
+export const createEmergencyRequest = async (requestData) => {
+  try {
+    const response = await apiClient.post('/emergency-requests', requestData)
+    return response.data
+  } catch (error) {
+    throw error.response?.data || error
+  }
+}
+
 /**
  * Get emergency requests
  * @param {number} hospitalID - Hospital ID
@@ -106,6 +115,15 @@ export const broadcastEmergencyRequest = async (hospitalID, requestData) => {
 export const getEmergencyRequests = async (hospitalID) => {
   try {
     const response = await apiClient.get(`/hospitals/${hospitalID}/emergency-requests`)
+    return response.data
+  } catch (error) {
+    throw error.response?.data || error
+  }
+}
+
+export const getEmergencyRequestHistory = async () => {
+  try {
+    const response = await apiClient.get('/emergency-requests')
     return response.data
   } catch (error) {
     throw error.response?.data || error
@@ -163,7 +181,9 @@ export default {
   updateBloodAvailability,
   getBloodAvailability,
   broadcastEmergencyRequest,
+  createEmergencyRequest,
   getEmergencyRequests,
+  getEmergencyRequestHistory,
   verifyDonorSchedule,
   checkDonorEligibility,
   updateHospitalProfile,

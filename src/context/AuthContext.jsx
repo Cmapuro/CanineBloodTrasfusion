@@ -1,10 +1,32 @@
-import React, { createContext, useState, useCallback } from 'react'
+import React, { createContext, useEffect, useState, useCallback } from 'react'
+import { getCurrentUser, loginUser, logoutUser } from '../services/authService'
 
 /**
  * AuthContext - Manages authentication state across the application
  * Provides user data, authentication status, and login/logout functionality
  */
 export const AuthContext = createContext()
+
+const backendRoles = {
+  donor: 'dog_owner',
+  hospital: 'clinic_admin',
+  admin: 'gov_admin',
+}
+
+const frontendRoles = {
+  dog_owner: 'donor',
+  clinic_admin: 'hospital',
+  clinic_staff: 'hospital',
+  gov_admin: 'admin',
+}
+
+const normalizeUser = (userData) => ({
+  ...userData,
+  id: userData.user_id ?? userData.id,
+  name: userData.full_name ?? userData.name,
+  role: frontendRoles[userData.role] ?? userData.role,
+  backendRole: userData.role,
+})
 
 /**
  * AuthProvider Component - Wraps the application to provide authentication context
@@ -22,10 +44,29 @@ export function AuthProvider({ children }) {
   })
 
   // State to track loading during authentication
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('authToken')))
 
   // State to store authentication errors
   const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!localStorage.getItem('authToken')) {
+      return
+    }
+
+    getCurrentUser()
+      .then((userData) => {
+        const normalized = normalizeUser(userData)
+        setUser(normalized)
+        localStorage.setItem('user', JSON.stringify(normalized))
+      })
+      .catch(() => {
+        localStorage.removeItem('authToken')
+        localStorage.removeItem('user')
+        setUser(null)
+      })
+      .finally(() => setLoading(false))
+  }, [])
 
   /**
    * Login function - Authenticates user
@@ -40,17 +81,11 @@ export function AuthProvider({ children }) {
     setLoading(true)
     setError(null)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      // Dummy authentication - accepts any email/password combination
-      const userData = {
-        id: Math.random().toString(36).substr(2, 9),
-        email,
-        role,
-        name: email.split('@')[0],
-        loginTime: new Date(),
+      const response = await loginUser(email, password)
+      if (response.user?.role !== backendRoles[role]) {
+        throw new Error('This account belongs to a different login portal.')
       }
+      const userData = normalizeUser(response.user)
 
       // If someone is already logged in with a different role, prevent cross-login
       const current = user
@@ -61,7 +96,6 @@ export function AuthProvider({ children }) {
       }
 
       setUser(userData)
-      // Store in localStorage for session persistence
       localStorage.setItem('user', JSON.stringify(userData))
       return userData
     } catch (err) {
@@ -76,10 +110,17 @@ export function AuthProvider({ children }) {
   /**
    * Logout function - Clears user data
    */
-  const logout = useCallback(() => {
-    setUser(null)
-    localStorage.removeItem('user')
-    setError(null)
+  const logout = useCallback(async () => {
+    try {
+      if (localStorage.getItem('authToken')) {
+        await logoutUser()
+      }
+    } finally {
+      setUser(null)
+      localStorage.removeItem('user')
+      localStorage.removeItem('authToken')
+      setError(null)
+    }
   }, [])
 
   /**
@@ -113,6 +154,7 @@ export function AuthProvider({ children }) {
     logout,
     isAuthenticated,
     hasRole,
+    backendRoles,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -48,7 +48,7 @@ export function HospitalListPage() {
       <section className="bg-blood-light py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold text-blood-red mb-4">
-            Hospital & Facilities Partners
+            Authorized Veterinary Clinics
           </h1>
           <p className="text-gray-700 text-lg">
             Trusted partners and blood centers we coordinate with

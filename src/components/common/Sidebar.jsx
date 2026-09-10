@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { LogoMark } from './LogoMark'
 
 function SidebarIcon({ name, active }) {
-  const tone = active ? '#fff' : 'currentColor'
+  const tone = 'currentColor'
   switch (name) {
     case 'DB':
       return (
@@ -90,6 +91,13 @@ function SidebarIcon({ name, active }) {
           <path d="M4 20h16L12 3 4 20z" stroke={tone} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )
+    case 'LO':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" className="sidebar-icon" aria-hidden="true">
+          <path d="M10 4H5.5A1.5 1.5 0 004 5.5v13A1.5 1.5 0 005.5 20H10" stroke={tone} strokeWidth="1.6" strokeLinecap="round" />
+          <path d="M13 8l4 4-4 4M8 12h9" stroke={tone} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )
     case 'VD':
       return (
         <svg viewBox="0 0 24 24" fill="none" className="sidebar-icon" aria-hidden="true">
@@ -173,7 +181,8 @@ export function Sidebar() {
   }, [isOpen])
 
   // Get authentication context
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
 
   // Get current location
   const location = useLocation()
@@ -191,13 +200,18 @@ export function Sidebar() {
         baseItem,
         {
           icon: 'AP',
-          label: 'Schedule Appointment',
+          label: 'Donation Schedule',
           path: '/donor/schedule-appointment',
         },
         {
           icon: 'HS',
-          label: 'Donation History',
+          label: 'Transfusion History',
           path: '/donor/donation-history',
+        },
+        {
+          icon: 'HS',
+          label: 'Medical Health Record',
+          path: '/donor/medical-health-record',
         },
         {
           icon: 'NT',
@@ -214,17 +228,22 @@ export function Sidebar() {
         baseItem,
         {
           icon: 'BI',
-          label: 'Blood Inventory',
+          label: 'Donor Availability',
           path: '/hospital/update-blood-availability',
         },
         {
           icon: 'ER',
-          label: 'Emergency Request',
+          label: 'Emergency Requests',
           path: '/hospital/emergency-broadcast',
         },
         {
+          icon: 'HS',
+          label: 'Request History',
+          path: '/hospital/emergency-request-history',
+        },
+        {
           icon: 'VD',
-          label: 'Verify Donors',
+          label: 'QR Verification',
           path: '/hospital/donor-schedule-verification',
         },
       ],
@@ -232,17 +251,17 @@ export function Sidebar() {
         baseItem,
         {
           icon: 'HP',
-          label: 'Hospitals',
+          label: 'Veterinary Clinics',
           path: '/admin/manage-hospitals',
         },
         {
           icon: 'DN',
-          label: 'Donors',
+          label: 'Canine Donors',
           path: '/admin/manage-donors',
         },
         {
           icon: 'IV',
-          label: 'Inventory',
+          label: 'DEA Inventory',
           path: '/admin/blood-inventory',
         },
         {
@@ -274,13 +293,13 @@ export function Sidebar() {
       >
         <div className={`sidebar-top ${isOpen ? '' : 'justify-center'}`}>
           <div className={`hidden md:flex items-center gap-3 ${isOpen ? '' : 'justify-center'}`}>
-            <div className="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center border border-white/10 shadow-lg">
-              <span className="text-lg font-black text-white">B</span>
+            <div className="sidebar-brand-mark">
+              <LogoMark size="sm" rounded="rounded-xl" alt="CanineLink logo" />
             </div>
             {isOpen && (
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-white/60">Admin Panel</p>
-                <p className="text-sm font-semibold text-white">Control Center</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-white/60">CanineLink</p>
+                <p className="text-sm font-semibold text-white">Veterinary Network</p>
               </div>
             )}
           </div>
@@ -318,6 +337,21 @@ export function Sidebar() {
               {isOpen && <span className="font-medium">{item.label}</span>}
             </Link>
           ))}
+
+          <button
+            type="button"
+            onClick={async () => {
+              await logout()
+              navigate('/donor/login')
+            }}
+            className="sidebar-link sidebar-logout w-full text-left text-white/80 hover:bg-white/10 hover:text-white"
+            title={isOpen ? '' : 'Logout'}
+          >
+            <div className="sidebar-icon-wrap">
+              <SidebarIcon name="LO" active={false} />
+            </div>
+            {isOpen && <span className="font-medium">Logout</span>}
+          </button>
         </nav>
       </aside>
 
@@ -334,7 +368,7 @@ export function Sidebar() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed left-4 top-24 md:hidden z-50 w-12 h-12 rounded-2xl bg-blood-red text-white shadow-lg flex items-center justify-center"
+          className="fixed left-4 top-4 md:hidden z-50 w-12 h-12 rounded-2xl bg-blood-red text-white shadow-lg flex items-center justify-center"
           aria-label="Open admin sidebar"
         >
           <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" aria-hidden="true">

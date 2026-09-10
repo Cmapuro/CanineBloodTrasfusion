@@ -5,10 +5,11 @@ import { useAuth } from '../../hooks/useAuth'
 import { useContext } from 'react'
 import { NotificationContext } from '../../context/NotificationContext'
 import { LogoMark } from '../../components/common/LogoMark'
+import { PasswordInput } from '../../components/common/PasswordInput'
 
 /**
  * HospitalLoginPage Component
- * Login page for hospitals
+ * Login page for veterinary clinics
  */
 export function HospitalLoginPage() {
   const navigate = useNavigate()
@@ -48,7 +49,7 @@ export function HospitalLoginPage() {
       }
 
       await login(formData.email, formData.password, 'hospital')
-      success('Hospital login successful!')
+      success('Clinic login successful!')
       navigate('/hospital/dashboard')
     } catch (err) {
       setFormError('Login failed')
@@ -66,10 +67,10 @@ export function HospitalLoginPage() {
             <div className="w-full bg-white rounded-lg shadow-lg p-6 sm:p-8">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 bg-blood-light rounded-full flex items-center justify-center mx-auto mb-4">
-                  <LogoMark size="md" className="border border-red-100" alt="Hospital login logo" />
+                  <LogoMark size="md" className="border border-red-100" alt="Clinic login logo" />
                 </div>
-                <h1 className="text-2xl font-bold text-gray-900">Hospital Login</h1>
-                <p className="text-gray-600 text-sm mt-2">Sign in to your hospital account</p>
+                <h1 className="text-2xl font-bold text-gray-900">Clinic Login</h1>
+                <p className="text-gray-600 text-sm mt-2">Sign in to your veterinary clinic account</p>
               </div>
 
               {formError && (
@@ -86,7 +87,7 @@ export function HospitalLoginPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="Enter hospital email"
+                    placeholder="Enter clinic email"
                     className="form-control"
                     required
                   />
@@ -94,13 +95,11 @@ export function HospitalLoginPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Enter password"
-                    className="form-control"
                     required
                   />
                 </div>

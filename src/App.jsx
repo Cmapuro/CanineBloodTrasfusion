@@ -19,6 +19,7 @@ import ScheduleAppointmentPage from './pages/donor/ScheduleAppointmentPage'
 import DonationHistoryPage from './pages/donor/DonationHistoryPage'
 import NotificationsPage from './pages/donor/NotificationsPage'
 import DonorProfilePage from './pages/donor/DonorProfilePage'
+import MedicalHealthRecordPage from './pages/donor/MedicalHealthRecordPage'
 
 // Hospital Pages
 import HospitalLoginPage from './pages/hospital/HospitalLoginPage'
@@ -27,6 +28,7 @@ import UpdateBloodAvailabilityPage from './pages/hospital/UpdateBloodAvailabilit
 import EmergencyBroadcastPage from './pages/hospital/EmergencyBroadcastPage'
 import DonorScheduleVerificationPage from './pages/hospital/DonorScheduleVerificationPage'
 import DonorEligibilityPage from './pages/hospital/DonorEligibilityPage'
+import EmergencyRequestHistoryPage from './pages/hospital/EmergencyRequestHistoryPage'
 
 // Admin Pages
 import AdminLoginPage from './pages/admin/AdminLoginPage'
@@ -86,6 +88,14 @@ function App() {
               }
             />
             <Route
+              path="/donor/medical-health-record"
+              element={
+                <ProtectedRoute requiredRole="donor">
+                  <MedicalHealthRecordPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/donor/notifications"
               element={
                 <ProtectedRoute requiredRole="donor">
@@ -127,6 +137,14 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="hospital">
                   <EmergencyBroadcastPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/hospital/emergency-request-history"
+              element={
+                <ProtectedRoute requiredRole="hospital">
+                  <EmergencyRequestHistoryPage />
                 </ProtectedRoute>
               }
             />

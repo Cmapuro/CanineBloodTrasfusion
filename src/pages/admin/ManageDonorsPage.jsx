@@ -6,7 +6,7 @@ import { Modal } from '../../components/common/Modal'
 
 /**
  * ManageDonorsPage Component
- * Manage registered donors
+ * Manage registered canine donors
  */
 export function ManageDonorsPage() {
   const [donors, setDonors] = useState(() => {
@@ -17,10 +17,11 @@ export function ManageDonorsPage() {
 
   const columns = [
     { key: 'donorID', label: 'Donor ID', sortable: true },
-    { key: 'firstName', label: 'Name', render: (val, row) => `${row.firstName} ${row.lastName}` },
-    { key: 'bloodType', label: 'Blood Type', sortable: true },
-    { key: 'email', label: 'Email', sortable: true },
-    { key: 'isEligible', label: 'Eligible', render: (val) => <span className={`badge ${val ? 'badge-success' : 'bg-red-100 text-red-800'}`}>{val ? 'Yes' : 'No'}</span> },
+    { key: 'firstName', label: 'Dog Name', render: (val, row) => `${row.firstName} ${row.lastName}` },
+    { key: 'bloodType', label: 'DEA Compatibility', sortable: true },
+    { key: 'age', label: 'Age', sortable: true, render: (val) => `${val} years` },
+    { key: 'gender', label: 'Breed', render: () => 'Golden Retriever' },
+    { key: 'isEligible', label: 'Availability', render: (val) => <span className={`badge ${val ? 'badge-success' : 'bg-red-100 text-red-800'}`}>{val ? 'Available' : 'Unavailable'}</span> },
   ]
 
   const saveDonors = (updated) => {
@@ -51,7 +52,8 @@ export function ManageDonorsPage() {
 
   return (
     <AdminLayout>
-      <h1 className="text-4xl font-bold text-gray-900 mb-8">Manage Donors</h1>
+      <h1 className="text-4xl font-bold text-gray-900 mb-2">Canine Donor Management</h1>
+      <p className="text-gray-600 mb-8">Review dog profiles, health status, and donation eligibility</p>
       <div className="card">
         <TableComponent columns={columns} data={donors} searchable actions={[
           { label: 'Edit', onClick: handleEdit, icon: (<svg viewBox="0 0 24 24" className="w-4 h-4" fill="none"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" strokeWidth="1.2"/></svg>) },

@@ -24,6 +24,20 @@ body {
   @apply bg-white/95 backdrop-blur-sm rounded-2xl shadow-soft p-6 transition-all duration-300 hover:shadow-medium border border-red-100;
 }
 
+.home-hero {
+  background:
+    radial-gradient(circle at 82% 18%, rgba(244, 63, 94, 0.32), transparent 28%),
+    linear-gradient(120deg, #5b0b16 0%, #9f1239 52%, #be123c 100%);
+}
+
+.home-hero-panel {
+  @apply rounded-3xl border border-white/15 bg-white/10 p-6 sm:p-8 shadow-2xl backdrop-blur-md;
+}
+
+.home-feature-tile {
+  @apply rounded-2xl border border-red-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-red-200 hover:shadow-medium;
+}
+
 /* Button Styling - Professional Healthcare Theme */
 .btn-primary {
   @apply bg-gradient-to-r from-blood-red to-rose-500 hover:from-blood-dark hover:to-blood-red text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md;
@@ -48,7 +62,7 @@ body {
 
 /* Sidebar active indicator and icon tones */
 .sidebar-shell {
-  @apply bg-gradient-to-b from-blood-dark via-blood-red to-rose-600 text-white transition-all duration-300 fixed left-0 top-20 z-40 min-h-[calc(100vh-5rem)] overflow-y-auto shadow-2xl border-r border-white/10;
+  @apply bg-gradient-to-b from-[#560b16] via-[#a30f25] to-[#e11d48] text-white transition-all duration-300 fixed left-0 top-0 z-40 min-h-screen overflow-y-auto shadow-2xl border-r border-white/10;
 }
 .sidebar-open {
   @apply w-72;
@@ -57,19 +71,22 @@ body {
   @apply w-20;
 }
 .sidebar-top {
-  @apply flex items-center justify-between gap-3 px-4 py-4 border-b border-white/10;
+  @apply flex items-center justify-between gap-3 px-4 py-5 border-b border-white/15 bg-black/10;
+}
+.sidebar-brand-mark {
+  @apply inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-white p-1 shadow-lg ring-1 ring-white/30;
 }
 .sidebar-toggle {
-  @apply inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-white/10 hover:bg-white/20 transition-colors border border-white/10;
+  @apply inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 transition-colors border border-white/15;
 }
 .sidebar-menu {
-  @apply space-y-2 px-3 py-4;
+  @apply space-y-1.5 px-3 py-5;
 }
 .sidebar-link {
-  @apply relative flex items-center gap-3 px-3 py-3 rounded-lg transition-colors;
+  @apply relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200;
 }
 .sidebar-link-active {
-  @apply bg-white/10 text-white shadow-sm;
+  @apply bg-white text-blood-red shadow-lg shadow-black/10;
 }
 .sidebar-bar {
   @apply absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 rounded-r-md bg-white;
@@ -78,10 +95,13 @@ body {
   @apply w-5 h-5;
 }
 .sidebar-icon-wrap {
-  @apply inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-white/10 border border-white/10 shadow-sm transition-all;
+  @apply inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 border border-white/10 shadow-sm transition-all;
 }
 .sidebar-icon-wrap-active {
   @apply bg-white text-blood-red border-white/40 shadow-md;
+}
+.sidebar-logout {
+  @apply mt-5 border-t border-white/15 pt-5 rounded-none;
 }
 
 /* Form Styling */

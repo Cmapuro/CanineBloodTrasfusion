@@ -4,7 +4,6 @@
  * Includes: Navbar, Sidebar, Footer, NotificationAlert
  */
 import React, { useEffect, useState } from 'react'
-import { Navbar } from '../common/Navbar'
 import { Sidebar } from '../common/Sidebar'
 import { Footer } from '../common/Footer'
 import { NotificationAlert } from '../common/NotificationAlert'
@@ -40,9 +39,6 @@ export function DonorLayout({ children }) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Navbar */}
-      <Navbar />
-
       {/* Notification System */}
       <NotificationAlert />
 
