@@ -1,13 +1,11 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { NotificationProvider } from './context/NotificationContext'
 import ProtectedRoute from './components/common/ProtectedRoute'
 
 // Public Pages
 import HomePage from './pages/public/HomePage'
-import SearchBloodPage from './pages/public/SearchBloodPage'
 import HospitalListPage from './pages/public/HospitalListPage'
-import EmergencyRequestPage from './pages/public/EmergencyRequestPage'
 import AboutPage from './pages/public/AboutPage'
 import ContactPage from './pages/public/ContactPage'
 
@@ -15,11 +13,12 @@ import ContactPage from './pages/public/ContactPage'
 import DonorLoginPage from './pages/donor/DonorLoginPage'
 import DonorRegistrationPage from './pages/donor/DonorRegistrationPage'
 import DonorDashboard from './pages/donor/DonorDashboard'
-import ScheduleAppointmentPage from './pages/donor/ScheduleAppointmentPage'
 import DonationHistoryPage from './pages/donor/DonationHistoryPage'
 import NotificationsPage from './pages/donor/NotificationsPage'
 import DonorProfilePage from './pages/donor/DonorProfilePage'
 import MedicalHealthRecordPage from './pages/donor/MedicalHealthRecordPage'
+import EmergencyDonorRequestPage from './pages/donor/EmergencyDonorRequestPage'
+import VerificationQrPage from './pages/donor/VerificationQrPage'
 
 // Hospital Pages
 import HospitalLoginPage from './pages/hospital/HospitalLoginPage'
@@ -29,6 +28,10 @@ import EmergencyBroadcastPage from './pages/hospital/EmergencyBroadcastPage'
 import DonorScheduleVerificationPage from './pages/hospital/DonorScheduleVerificationPage'
 import DonorEligibilityPage from './pages/hospital/DonorEligibilityPage'
 import EmergencyRequestHistoryPage from './pages/hospital/EmergencyRequestHistoryPage'
+import ClinicLocationPage from './pages/hospital/ClinicLocationPage'
+import DonorListPage from './pages/hospital/DonorListPage'
+import QrScanVerificationPage from './pages/hospital/QrScanVerificationPage'
+import TransfusionHistoryPage from './pages/hospital/TransfusionHistoryPage'
 
 // Admin Pages
 import AdminLoginPage from './pages/admin/AdminLoginPage'
@@ -52,9 +55,7 @@ function App() {
           <Routes>
             {/* ===== PUBLIC ROUTES ===== */}
             <Route path="/" element={<HomePage />} />
-            <Route path="/search-blood" element={<SearchBloodPage />} />
             <Route path="/hospitals" element={<HospitalListPage />} />
-            <Route path="/emergency-request" element={<EmergencyRequestPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
 
@@ -68,14 +69,6 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="donor">
                   <DonorDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/donor/schedule-appointment"
-              element={
-                <ProtectedRoute requiredRole="donor">
-                  <ScheduleAppointmentPage />
                 </ProtectedRoute>
               }
             />
@@ -100,6 +93,22 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="donor">
                   <NotificationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/donor/emergency-requests"
+              element={
+                <ProtectedRoute requiredRole="donor">
+                  <EmergencyDonorRequestPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/donor/verification-qr"
+              element={
+                <ProtectedRoute requiredRole="donor">
+                  <VerificationQrPage />
                 </ProtectedRoute>
               }
             />
@@ -149,6 +158,22 @@ function App() {
               }
             />
             <Route
+              path="/hospital/clinic-location"
+              element={
+                <ProtectedRoute requiredRole="hospital">
+                  <ClinicLocationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/hospital/profile"
+              element={
+                <ProtectedRoute requiredRole="hospital">
+                  <ClinicLocationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/hospital/donor-schedule-verification"
               element={
                 <ProtectedRoute requiredRole="hospital">
@@ -164,11 +189,39 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/hospital/donor-list"
+              element={
+                <ProtectedRoute requiredRole="hospital">
+                  <DonorListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/hospital/qr-scan-verification"
+              element={
+                <ProtectedRoute requiredRole="hospital">
+                  <QrScanVerificationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/hospital/transfusion-history"
+              element={
+                <ProtectedRoute requiredRole="hospital">
+                  <TransfusionHistoryPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* ===== ADMIN ROUTES ===== */}
             <Route path="/admin/login" element={<AdminLoginPage />} />
             
             {/* Protected Admin Routes */}
+            <Route
+              path="/admin"
+              element={<Navigate to="/admin/dashboard" replace />}
+            />
             <Route
               path="/admin/dashboard"
               element={

@@ -38,6 +38,28 @@ body {
   @apply rounded-2xl border border-red-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-red-200 hover:shadow-medium;
 }
 
+.canine-map-pin {
+  background: #e11d48;
+  border: 3px solid #fff;
+  border-radius: 9999px 9999px 9999px 0;
+  box-shadow: 0 5px 12px rgba(127, 29, 29, 0.35);
+  transform: rotate(-45deg);
+}
+
+.canine-map-pin span {
+  display: block;
+  width: 6px;
+  height: 6px;
+  margin: 6px auto;
+  border-radius: 9999px;
+  background: #fff;
+}
+
+.leaflet-container {
+  position: relative;
+  z-index: 0;
+}
+
 /* Button Styling - Professional Healthcare Theme */
 .btn-primary {
   @apply bg-gradient-to-r from-blood-red to-rose-500 hover:from-blood-dark hover:to-blood-red text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md;
@@ -62,7 +84,7 @@ body {
 
 /* Sidebar active indicator and icon tones */
 .sidebar-shell {
-  @apply bg-gradient-to-b from-[#560b16] via-[#a30f25] to-[#e11d48] text-white transition-all duration-300 fixed left-0 top-0 z-40 min-h-screen overflow-y-auto shadow-2xl border-r border-white/10;
+  @apply fixed left-0 top-0 z-40 flex min-h-screen flex-col overflow-hidden border-r border-white/10 bg-gradient-to-b from-[#560b16] via-[#a30f25] to-[#e11d48] text-white shadow-2xl transition-all duration-300;
 }
 .sidebar-open {
   @apply w-72;
@@ -71,37 +93,46 @@ body {
   @apply w-20;
 }
 .sidebar-top {
-  @apply flex items-center justify-between gap-3 px-4 py-5 border-b border-white/15 bg-black/10;
+  @apply flex shrink-0 items-center justify-between gap-3 border-b border-white/15 bg-black/10 px-4 py-5;
 }
 .sidebar-brand-mark {
-  @apply inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-white p-1 shadow-lg ring-1 ring-white/30;
+  @apply inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white p-1 shadow-lg ring-1 ring-white/30;
 }
 .sidebar-toggle {
-  @apply inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 transition-colors border border-white/15;
+  @apply inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 transition-colors hover:bg-white/20;
+}
+.sidebar-content {
+  @apply flex min-h-0 flex-1 flex-col;
 }
 .sidebar-menu {
-  @apply space-y-1.5 px-3 py-5;
+  @apply flex min-h-0 flex-1 flex-col gap-1.5 overflow-x-hidden overflow-y-auto px-3 py-5;
 }
 .sidebar-link {
-  @apply relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200;
+  @apply relative flex w-full max-w-full items-center gap-3 overflow-hidden rounded-xl px-3 py-3 transition-all duration-200;
 }
 .sidebar-link-active {
-  @apply bg-white text-blood-red shadow-lg shadow-black/10;
+  @apply bg-white text-[#b91c1c] shadow-lg shadow-black/10;
 }
 .sidebar-bar {
-  @apply absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 rounded-r-md bg-white;
+  @apply absolute left-0 top-1/2 h-10 w-1 -translate-y-1/2 rounded-r-md bg-white;
 }
 .sidebar-icon svg {
-  @apply w-5 h-5;
+  @apply h-5 w-5;
 }
 .sidebar-icon-wrap {
-  @apply inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 border border-white/10 shadow-sm transition-all;
+  @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/10 shadow-sm transition-all;
 }
 .sidebar-icon-wrap-active {
-  @apply bg-white text-blood-red border-white/40 shadow-md;
+  @apply border-white/40 bg-white text-[#b91c1c] shadow-md;
+}
+.sidebar-menu-label {
+  @apply truncate whitespace-nowrap text-sm font-semibold;
+}
+.sidebar-footer {
+  @apply border-t border-white/15 bg-[#a30f25]/90 px-3 pb-4 pt-3;
 }
 .sidebar-logout {
-  @apply mt-5 border-t border-white/15 pt-5 rounded-none;
+  @apply w-full rounded-xl border border-white/10 bg-white/5 text-left text-white/80 hover:bg-white/10 hover:text-white;
 }
 
 /* Form Styling */

@@ -129,8 +129,8 @@ export function HomePage() {
                 <Link to="/donor/register" className="inline-flex items-center justify-center bg-white text-blood-red hover:bg-red-50 font-semibold py-3.5 px-7 rounded-xl transition shadow-lg shadow-black/10">
                   Register as Donor
                 </Link>
-                <Link to="/search-blood" className="inline-flex items-center justify-center border border-white/35 bg-white/10 text-white hover:bg-white hover:text-blood-red font-semibold py-3.5 px-7 rounded-xl transition">
-                  Find a compatible donor
+                <Link to="/hospitals" className="inline-flex items-center justify-center border border-white/35 bg-white/10 text-white hover:bg-white hover:text-blood-red font-semibold py-3.5 px-7 rounded-xl transition">
+                  View veterinary clinics
                 </Link>
               </div>
               <div className="mt-9 flex flex-wrap gap-x-7 gap-y-3 text-sm text-red-50/75">

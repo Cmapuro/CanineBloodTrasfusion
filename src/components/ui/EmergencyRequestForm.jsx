@@ -1,6 +1,30 @@
 import React, { useState } from 'react'
 import { BLOOD_TYPES } from '../../utils/bloodTypes'
 
+const DOG_BREEDS = [
+  'Labrador Retriever',
+  'Golden Retriever',
+  'German Shepherd',
+  'Bulldog',
+  'Poodle',
+  'Beagle',
+  'Rottweiler',
+  'Yorkshire Terrier',
+  'Boxer',
+  'Dachshund',
+  'Siberian Husky',
+  'Great Dane',
+  'Doberman Pinscher',
+  'Australian Shepherd',
+  'Border Collie',
+  'Shih Tzu',
+  'Chihuahua',
+  'Pug',
+  'French Bulldog',
+  'Corgi',
+  'Other',
+]
+
 /**
  * EmergencyRequestForm Component
  * Form for submitting emergency blood requests
@@ -103,7 +127,19 @@ export function EmergencyRequestForm({ onSubmit, loading = false }) {
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Patient Breed</label>
-          <input type="text" name="patientBreed" value={formData.patientBreed} onChange={handleChange} placeholder="e.g. Labrador Retriever" className="form-control" />
+          <select
+            name="patientBreed"
+            value={formData.patientBreed}
+            onChange={handleChange}
+            className="form-control"
+          >
+            <option value="">-- Select breed --</option>
+            {DOG_BREEDS.map((breed) => (
+              <option key={breed} value={breed}>
+                {breed}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Patient Weight (kg)</label>

@@ -51,9 +51,9 @@ class MatchDonorsForRequest
                 'dog_id' => $dog->dog_id,
                 'compatibility_score' => $dog->blood_type_code === $neededCode ? 100 : 85,
                 'rank_order' => $rank + 1,
-                'status' => $rank === 0 ? 'notified' : 'queued',
-                'notified_at' => $rank === 0 ? now() : null,
-                'response_deadline' => $rank === 0 ? now()->addMinutes(15) : null,
+                'status' => 'queued',
+                'notified_at' => null,
+                'response_deadline' => null,
             ]);
 
             $matches[] = [
@@ -68,7 +68,7 @@ class MatchDonorsForRequest
         }
 
         if ($dogs->isNotEmpty()) {
-            $request->update(['status' => 'donor_notified']);
+            $request->update(['status' => 'searching']);
         }
 
         return $matches;

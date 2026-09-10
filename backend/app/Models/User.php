@@ -38,4 +38,9 @@ class User extends Authenticatable
     {
         return $this->password_hash;
     }
+
+    public function clinic()
+    {
+        return $this->belongsTo(Clinic::class, 'clinic_id', 'clinic_id');
+    }
 }

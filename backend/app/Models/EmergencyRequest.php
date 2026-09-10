@@ -26,6 +26,11 @@ class EmergencyRequest extends Model
         return $this->belongsTo(BloodType::class, 'blood_type_needed_id', 'blood_type_id');
     }
 
+    public function requestingClinic()
+    {
+        return $this->belongsTo(Clinic::class, 'requesting_clinic_id', 'clinic_id');
+    }
+
     public function matches()
     {
         return $this->hasMany(RequestMatch::class, 'request_id', 'request_id')->orderBy('rank_order');

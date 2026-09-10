@@ -109,6 +109,13 @@ export function HospitalLoginPage() {
                 </button>
               </form>
 
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg text-sm">
+                <p className="font-semibold text-blue-900 mb-2">Demo Credentials:</p>
+                <p className="text-blue-800">Clinic admin: dr.kang@caninelink.test / DrKang@12345</p>
+                <p className="text-blue-800">Donor: donor@caninelink.test / Donor@12345</p>
+                <p className="text-blue-800">Admin: admin@caninelink.test / Admin@12345</p>
+              </div>
+
               <div className="mt-6 space-y-3">
                 <p className="text-center text-gray-600 text-sm">Other login options:</p>
                 <div className="flex gap-2">

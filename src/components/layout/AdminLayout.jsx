@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
-import { Navbar } from '../common/Navbar'
 import { Sidebar } from '../common/Sidebar'
 import { Footer } from '../common/Footer'
 import { NotificationAlert } from '../common/NotificationAlert'
+import { FloatingNotification } from '../common/FloatingNotification'
 
 /**
  * AdminLayout Component
  * Layout for admin pages (requires admin authentication)
- * Includes: Navbar, Sidebar, Footer, NotificationAlert
+ * Includes: Sidebar, Footer, NotificationAlert, FloatingNotification
  */
 export function AdminLayout({ children }) {
   const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -35,11 +35,11 @@ export function AdminLayout({ children }) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Navbar */}
-      <Navbar />
-
       {/* Notification System */}
       <NotificationAlert />
+
+      {/* Floating Notification Icon */}
+      <FloatingNotification />
 
       {/* Main Content with Sidebar */}
       <div className="flex flex-1">

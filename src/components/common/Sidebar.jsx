@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { LogoMark } from './LogoMark'
 
@@ -181,8 +181,7 @@ export function Sidebar() {
   }, [isOpen])
 
   // Get authentication context
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
 
   // Get current location
   const location = useLocation()
@@ -199,11 +198,6 @@ export function Sidebar() {
       donor: [
         baseItem,
         {
-          icon: 'AP',
-          label: 'Donation Schedule',
-          path: '/donor/schedule-appointment',
-        },
-        {
           icon: 'HS',
           label: 'Transfusion History',
           path: '/donor/donation-history',
@@ -212,6 +206,16 @@ export function Sidebar() {
           icon: 'HS',
           label: 'Medical Health Record',
           path: '/donor/medical-health-record',
+        },
+        {
+          icon: 'ER',
+          label: 'Emergency Requests',
+          path: '/donor/emergency-requests',
+        },
+        {
+          icon: 'VD',
+          label: 'Verification QR',
+          path: '/donor/verification-qr',
         },
         {
           icon: 'NT',
@@ -232,9 +236,24 @@ export function Sidebar() {
           path: '/hospital/update-blood-availability',
         },
         {
+          icon: 'DN',
+          label: 'Donor List',
+          path: '/hospital/donor-list',
+        },
+        {
           icon: 'ER',
           label: 'Emergency Requests',
           path: '/hospital/emergency-broadcast',
+        },
+        {
+          icon: 'VD',
+          label: 'QR Scan Verification',
+          path: '/hospital/qr-scan-verification',
+        },
+        {
+          icon: 'HS',
+          label: 'Transfusion History',
+          path: '/hospital/transfusion-history',
         },
         {
           icon: 'HS',
@@ -242,9 +261,9 @@ export function Sidebar() {
           path: '/hospital/emergency-request-history',
         },
         {
-          icon: 'VD',
-          label: 'QR Verification',
-          path: '/hospital/donor-schedule-verification',
+          icon: 'HP',
+          label: 'Clinic Profile',
+          path: '/hospital/profile',
         },
       ],
       admin: [
@@ -253,16 +272,6 @@ export function Sidebar() {
           icon: 'HP',
           label: 'Veterinary Clinics',
           path: '/admin/manage-hospitals',
-        },
-        {
-          icon: 'DN',
-          label: 'Canine Donors',
-          path: '/admin/manage-donors',
-        },
-        {
-          icon: 'IV',
-          label: 'DEA Inventory',
-          path: '/admin/blood-inventory',
         },
         {
           icon: 'EM',
@@ -316,43 +325,30 @@ export function Sidebar() {
           </button>
         </div>
 
-        {/* Menu Items */}
-        <nav className="sidebar-menu">
-          {menuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`sidebar-link ${isActive(item.path) ? 'sidebar-link-active' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
-              title={isOpen ? '' : item.label}
-              onClick={() => {
-                if (window.innerWidth < 768) {
-                  setIsOpen(false)
-                }
-              }}
-            >
-              {isActive(item.path) && <span className="sidebar-bar" />}
-              <div className={`sidebar-icon-wrap ${isActive(item.path) ? 'sidebar-icon-wrap-active' : ''}`}>
-                <SidebarIcon name={item.icon} active={isActive(item.path)} />
-              </div>
-              {isOpen && <span className="font-medium">{item.label}</span>}
-            </Link>
-          ))}
-
-          <button
-            type="button"
-            onClick={async () => {
-              await logout()
-              navigate('/donor/login')
-            }}
-            className="sidebar-link sidebar-logout w-full text-left text-white/80 hover:bg-white/10 hover:text-white"
-            title={isOpen ? '' : 'Logout'}
-          >
-            <div className="sidebar-icon-wrap">
-              <SidebarIcon name="LO" active={false} />
-            </div>
-            {isOpen && <span className="font-medium">Logout</span>}
-          </button>
-        </nav>
+        <div className="sidebar-content">
+          {/* Menu Items */}
+          <nav className="sidebar-menu">
+            {menuItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`sidebar-link ${isActive(item.path) ? 'sidebar-link-active' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
+                title={isOpen ? '' : item.label}
+                onClick={() => {
+                  if (window.innerWidth < 768) {
+                    setIsOpen(false)
+                  }
+                }}
+              >
+                {isActive(item.path) && <span className="sidebar-bar" />}
+                <div className={`sidebar-icon-wrap ${isActive(item.path) ? 'sidebar-icon-wrap-active' : ''}`}>
+                  <SidebarIcon name={item.icon} active={isActive(item.path)} />
+                </div>
+                {isOpen && <span className="sidebar-menu-label">{item.label}</span>}
+              </Link>
+            ))}
+          </nav>
+        </div>
       </aside>
 
       {/* Overlay for small screens when sidebar is open */}

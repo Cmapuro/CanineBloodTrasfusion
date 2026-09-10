@@ -11,7 +11,7 @@ function useTotals() {
   const donors = storedDonors ? JSON.parse(storedDonors) : donorsJson
   const hospitals = storedHospitals ? JSON.parse(storedHospitals) : hospitalsJson
   const successfulTransfusions = donors.reduce((s, d) => s + (d.totalDonations || 0), 0) + 18
-  return { donorsCount: donors.length + 42, clinicsCount: hospitals.length + 8, successfulTransfusions }
+  return { donorsCount: donors.length + 42, clinicsCount: hospitals.length, successfulTransfusions }
 }
 
 /**

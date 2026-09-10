@@ -20,4 +20,9 @@ class Dog extends Model
     {
         static::addGlobalScope(new ClinicScope());
     }
+
+    public function bloodType()
+    {
+        return $this->belongsTo(BloodType::class, 'blood_type_id', 'blood_type_id');
+    }
 }

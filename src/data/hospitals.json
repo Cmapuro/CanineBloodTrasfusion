@@ -1,128 +1,22 @@
 [
   {
     "id": 1,
-    "name": "Tagum Medical City",
-    "type": "Partner hospital / facility",
+    "name": "Dr. Kang 24/7 Animal Emergency Clinic",
+    "type": "Veterinary clinic",
     "city": "Tagum",
     "province": "Davao del Norte",
-    "phone": "+63-84-123-4567",
-    "email": "info@tagummedical.com",
-    "address": "123 Hospital Street, Tagum",
-    "coordinates": {
-      "latitude": 7.4538,
-      "longitude": 125.6386
-    }
+    "phone": "+63 975 078 4420",
+    "email": "dr.kang@caninelink.test",
+    "address": "Tagum City, Davao del Norte"
   },
   {
     "id": 2,
-    "name": "Christ the King Specialist Hospital",
-    "type": "Partner hospital / facility",
+    "name": "Animal Doctors Veterinary Hospital Tagum",
+    "type": "Veterinary hospital",
     "city": "Tagum",
     "province": "Davao del Norte",
-    "phone": "+63-84-234-5678",
-    "email": "contact@christtheking.com",
-    "address": "456 Medical Avenue, Tagum",
-    "coordinates": {
-      "latitude": 7.4520,
-      "longitude": 125.6400
-    }
-  },
-  {
-    "id": 3,
-    "name": "Medical Mission Group Hospital and Health Services Cooperative of Tagum",
-    "type": "Partner hospital / facility",
-    "city": "Tagum",
-    "province": "Davao del Norte",
-    "phone": "+63-84-345-6789",
-    "email": "info@medicalmission.com",
-    "address": "789 Health Road, Tagum",
-    "coordinates": {
-      "latitude": 7.4550,
-      "longitude": 125.6370
-    }
-  },
-  {
-    "id": 4,
-    "name": "Tagum Global Medical Center Inc. (ACE)",
-    "type": "Partner hospital / facility",
-    "city": "Tagum",
-    "province": "Davao del Norte",
-    "phone": "+63-84-456-7890",
-    "email": "ace@tagumglobal.com",
-    "address": "321 Global Health Lane, Tagum",
-    "coordinates": {
-      "latitude": 7.4510,
-      "longitude": 125.6410
-    }
-  },
-  {
-    "id": 5,
-    "name": "Tagum Doctor Hospital",
-    "type": "Partner hospital / facility",
-    "city": "Tagum",
-    "province": "Davao del Norte",
-    "phone": "+63-84-567-8901",
-    "email": "info@tagumdoctor.com",
-    "address": "654 Doctor Street, Tagum",
-    "coordinates": {
-      "latitude": 7.4540,
-      "longitude": 125.6390
-    }
-  },
-  {
-    "id": 6,
-    "name": "Aquino Medical Specialists Hospital Inc.",
-    "type": "Partner hospital / facility",
-    "city": "Tagum",
-    "province": "Davao del Norte",
-    "phone": "+63-84-678-9012",
-    "email": "contact@aquinomedical.com",
-    "address": "987 Specialist Avenue, Tagum",
-    "coordinates": {
-      "latitude": 7.4530,
-      "longitude": 125.6380
-    }
-  },
-  {
-    "id": 7,
-    "name": "Davao Regional Medical Center",
-    "type": "Partner hospital / facility",
-    "city": "Davao City",
-    "province": "Davao del Sur",
-    "phone": "+63-82-789-0123",
-    "email": "info@davaoregional.com",
-    "address": "111 Regional Road, Davao City",
-    "coordinates": {
-      "latitude": 7.0731,
-      "longitude": 125.6123
-    }
-  },
-  {
-    "id": 8,
-    "name": "City Health Office of Tagum (CHO)",
-    "type": "Partner hospital / facility",
-    "city": "Tagum",
-    "province": "Davao del Norte",
-    "phone": "+63-84-890-1234",
-    "email": "cho@tagum.gov.ph",
-    "address": "555 City Center, Tagum",
-    "coordinates": {
-      "latitude": 7.4525,
-      "longitude": 125.6395
-    }
-  },
-  {
-    "id": 9,
-    "name": "Davao del Norte Blood Center",
-    "type": "Partner hospital / facility",
-    "city": "Tagum",
-    "province": "Davao del Norte",
-    "phone": "+63-84-901-2345",
-    "email": "bloodcenter@davnor.com",
-    "address": "888 Blood Bank Street, Tagum",
-    "coordinates": {
-      "latitude": 7.4535,
-      "longitude": 125.6385
-    }
+    "phone": "+63 975 078 4420",
+    "email": "animaldoctors@caninelink.test",
+    "address": "Tagum City, Davao del Norte"
   }
 ]

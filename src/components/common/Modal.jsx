@@ -22,12 +22,12 @@ export function Modal({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/20 z-[60] transition-opacity"
+        className="fixed inset-0 bg-black/20 z-[990] transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Content */}
-      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6">
+      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6">
         <div
           role="dialog"
           aria-modal="true"

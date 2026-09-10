@@ -33,17 +33,16 @@ export function Navbar() {
   // Public navigation links
   const publicLinks = [
     { path: '/', label: 'Home' },
-    { path: '/search-blood', label: 'Find a Canine Donor' },
     { path: '/hospitals', label: 'Veterinary Clinics' },
-    { path: '/emergency-request', label: 'Emergency Request' },
     { path: '/about', label: 'About' },
   ];
 
   // Donor navigation links
   const donorLinks = [
     { path: '/donor/dashboard', label: 'Dashboard' },
-    { path: '/donor/schedule-appointment', label: 'Donation Schedule' },
     { path: '/donor/medical-health-record', label: 'Medical Health Record' },
+    { path: '/donor/emergency-requests', label: 'Emergency Requests' },
+    { path: '/donor/verification-qr', label: 'Verification QR' },
     { path: '/donor/donation-history', label: 'Transfusion History' },
     { path: '/donor/notifications', label: 'Notifications' },
   ];
@@ -53,6 +52,7 @@ export function Navbar() {
     { path: '/hospital/dashboard', label: 'Dashboard' },
     { path: '/hospital/update-blood-availability', label: 'Donor Availability' },
     { path: '/hospital/emergency-broadcast', label: 'Emergency Requests' },
+    { path: '/hospital/profile', label: 'Clinic Profile' },
   ];
 
   // Admin navigation links

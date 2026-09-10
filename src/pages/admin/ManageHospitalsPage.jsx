@@ -11,9 +11,16 @@ import { Modal } from '../../components/common/Modal'
 export function ManageHospitalsPage() {
   const [hospitals, setHospitals] = useState(() => {
     const stored = localStorage.getItem('hospitals')
+    const dataVersion = localStorage.getItem('hospitals-data-version')
+    if (dataVersion !== 'v2') {
+      localStorage.setItem('hospitals-data-version', 'v2')
+      localStorage.setItem('hospitals', JSON.stringify(hospitalsJson))
+      return hospitalsJson
+    }
     return stored ? JSON.parse(stored) : hospitalsJson
   })
   const [editing, setEditing] = useState(null)
+  const [adding, setAdding] = useState(false)
 
   const columns = [
     { key: 'name', label: 'Hospital Name', sortable: true },
@@ -25,6 +32,7 @@ export function ManageHospitalsPage() {
   const saveHospitals = (updated) => {
     setHospitals(updated)
     localStorage.setItem('hospitals', JSON.stringify(updated))
+    localStorage.setItem('hospitals-data-version', 'v2')
     // Notify other parts of the app that hospitals data changed
     try {
       window.dispatchEvent(new CustomEvent('hospitals-updated', { detail: { hospitals: updated } }))
@@ -54,9 +62,33 @@ export function ManageHospitalsPage() {
     setEditing(null)
   }
 
+  const handleAdd = () => {
+    const newClinic = {
+      ...adding,
+      id: hospitals.reduce((highestId, hospital) => Math.max(highestId, hospital.id || 0), 0) + 1,
+    }
+    saveHospitals([...hospitals, newClinic])
+    setAdding(null)
+  }
+
+  const handleFormChange = (setter) => (e) => {
+    const { name, value } = e.target
+    setter((previous) => ({ ...previous, [name]: value }))
+  }
+
   return (
     <AdminLayout>
-      <h1 className="text-4xl font-bold text-gray-900 mb-8">Manage Hospitals</h1>
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-blood-red">Provincial Network</p>
+          <h1 className="mt-2 text-4xl font-bold text-gray-900">Veterinary Clinics</h1>
+          <p className="mt-2 text-gray-600">Manage the clinics authorized to coordinate CanineLink transfusions.</p>
+        </div>
+        <button type="button" onClick={() => setAdding({ name: '', type: 'Veterinary clinic', city: '', phone: '', email: '', address: '' })} className="btn-primary inline-flex items-center justify-center gap-2 sm:w-auto">
+          <span className="text-xl leading-none">+</span>
+          Add Clinic
+        </button>
+      </div>
       <div className="card">
         <TableComponent
           columns={columns}
@@ -69,32 +101,32 @@ export function ManageHospitalsPage() {
         />
       </div>
 
-      <Modal isOpen={!!editing} title={editing ? `Edit ${editing.name}` : ''} onClose={() => setEditing(null)} onConfirm={handleSave} confirmText="Save">
-        {editing && (
+      <Modal isOpen={!!editing || !!adding} title={editing ? `Edit ${editing.name}` : 'Add Veterinary Clinic'} onClose={() => { setEditing(null); setAdding(false) }} onConfirm={editing ? handleSave : handleAdd} confirmText={editing ? 'Save' : 'Add Clinic'}>
+        {(editing || adding) && (
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-              <input name="name" value={editing.name} onChange={handleChange} className="form-control" />
+              <input name="name" value={(editing || adding).name} onChange={editing ? handleChange : handleFormChange(setAdding)} className="form-control" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-              <input name="type" value={editing.type} onChange={handleChange} className="form-control" />
+              <input name="type" value={(editing || adding).type} onChange={editing ? handleChange : handleFormChange(setAdding)} className="form-control" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-              <input name="city" value={editing.city} onChange={handleChange} className="form-control" />
+              <input name="city" value={(editing || adding).city} onChange={editing ? handleChange : handleFormChange(setAdding)} className="form-control" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-              <input name="phone" value={editing.phone} onChange={handleChange} className="form-control" />
+              <input name="phone" value={(editing || adding).phone} onChange={editing ? handleChange : handleFormChange(setAdding)} className="form-control" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input name="email" value={editing.email || ''} onChange={handleChange} className="form-control" />
+              <input name="email" type="email" value={(editing || adding).email || ''} onChange={editing ? handleChange : handleFormChange(setAdding)} className="form-control" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-              <input name="address" value={editing.address || ''} onChange={handleChange} className="form-control" />
+              <input name="address" value={(editing || adding).address || ''} onChange={editing ? handleChange : handleFormChange(setAdding)} className="form-control" required />
             </div>
           </div>
         )}
