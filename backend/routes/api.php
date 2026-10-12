@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmergencyRequestController;
 use App\Http\Controllers\ClinicController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\NearbyLocationController;
 
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
@@ -27,3 +28,9 @@ Route::middleware('auth:sanctum')->post('/notifications/{notification}/read', [N
 Route::middleware('auth:sanctum')->post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 Route::middleware('auth:sanctum')->get('/clinic/profile', [ClinicController::class, 'show']);
 Route::middleware('auth:sanctum')->put('/clinic/location', [ClinicController::class, 'updateLocation']);
+Route::middleware(['auth:sanctum', 'role:clinic_admin,clinic_staff'])
+    ->get('/nearby-locations', [NearbyLocationController::class, 'index']);
+Route::middleware(['auth:sanctum', 'role:dog_owner'])
+    ->get('/donor/location-sharing', [NearbyLocationController::class, 'donorSharingSettings']);
+Route::middleware(['auth:sanctum', 'role:dog_owner'])
+    ->put('/donor/dogs/{dogId}/location-sharing', [NearbyLocationController::class, 'updateDonorSharingConsent']);

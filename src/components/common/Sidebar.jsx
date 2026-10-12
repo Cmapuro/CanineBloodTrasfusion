@@ -12,6 +12,13 @@ function SidebarIcon({ name, active }) {
           <path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z" stroke={tone} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )
+    case 'MP':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" className="sidebar-icon" aria-hidden="true">
+          <path d="M12 21s7-6.1 7-12a7 7 0 10-14 0c0 5.9 7 12 7 12z" stroke={tone} strokeWidth="1.5" strokeLinejoin="round" />
+          <circle cx="12" cy="9" r="2.2" stroke={tone} strokeWidth="1.5" />
+        </svg>
+      )
     case 'HP':
       return (
         <svg viewBox="0 0 24 24" fill="none" className="sidebar-icon" aria-hidden="true">
@@ -227,6 +234,11 @@ export function Sidebar() {
           label: 'Profile',
           path: '/donor/profile',
         },
+        {
+          icon: 'MP',
+          label: 'Location Sharing',
+          path: '/donor/location-sharing',
+        },
       ],
       hospital: [
         baseItem,
@@ -264,6 +276,11 @@ export function Sidebar() {
           icon: 'HP',
           label: 'Clinic Profile',
           path: '/hospital/profile',
+        },
+        {
+          icon: 'MP',
+          label: 'Nearby Locations',
+          path: '/hospital/nearby-locations',
         },
       ],
       admin: [

@@ -19,6 +19,7 @@ import DonorProfilePage from './pages/donor/DonorProfilePage'
 import MedicalHealthRecordPage from './pages/donor/MedicalHealthRecordPage'
 import EmergencyDonorRequestPage from './pages/donor/EmergencyDonorRequestPage'
 import VerificationQrPage from './pages/donor/VerificationQrPage'
+import DonorLocationSharingPage from './pages/donor/DonorLocationSharingPage'
 
 // Hospital Pages
 import HospitalLoginPage from './pages/hospital/HospitalLoginPage'
@@ -32,6 +33,7 @@ import ClinicLocationPage from './pages/hospital/ClinicLocationPage'
 import DonorListPage from './pages/hospital/DonorListPage'
 import QrScanVerificationPage from './pages/hospital/QrScanVerificationPage'
 import TransfusionHistoryPage from './pages/hospital/TransfusionHistoryPage'
+import NearbyLocationsPage from './pages/hospital/NearbyLocationsPage'
 
 // Admin Pages
 import AdminLoginPage from './pages/admin/AdminLoginPage'
@@ -120,6 +122,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/donor/location-sharing"
+              element={
+                <ProtectedRoute requiredRole="donor">
+                  <DonorLocationSharingPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* ===== HOSPITAL ROUTES ===== */}
             <Route path="/hospital/login" element={<HospitalLoginPage />} />
@@ -170,6 +180,14 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="hospital">
                   <ClinicLocationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/hospital/nearby-locations"
+              element={
+                <ProtectedRoute requiredRole="hospital">
+                  <NearbyLocationsPage />
                 </ProtectedRoute>
               }
             />
