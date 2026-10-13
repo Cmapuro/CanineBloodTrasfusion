@@ -33,7 +33,7 @@ export function Navbar() {
   // Public navigation links
   const publicLinks = [
     { path: '/', label: 'Home' },
-    { path: '/hospitals', label: 'Veterinary Clinics' },
+    { path: '/veterinaryclinics', label: 'Veterinary Clinics' },
     { path: '/about', label: 'About' },
   ];
 

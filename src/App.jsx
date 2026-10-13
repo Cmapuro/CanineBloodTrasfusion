@@ -57,7 +57,8 @@ function App() {
           <Routes>
             {/* ===== PUBLIC ROUTES ===== */}
             <Route path="/" element={<HomePage />} />
-            <Route path="/hospitals" element={<HospitalListPage />} />
+            <Route path="/veterinaryclinics" element={<HospitalListPage />} />
+            <Route path="/hospitals" element={<Navigate to="/veterinaryclinics" replace />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
 

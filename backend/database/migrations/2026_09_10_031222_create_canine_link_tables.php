@@ -171,7 +171,7 @@ return new class extends Migration
             $table->text('qr_payload');
             $table->enum('status', ['issued', 'scanned', 'verified', 'expired', 'void'])->default('issued');
             $table->timestamp('issued_at')->useCurrent();
-            $table->timestamp('expires_at');
+            $table->timestamp('expires_at')->nullable();
             $table->unsignedInteger('scanned_by')->nullable();
             $table->timestamp('scanned_at')->nullable();
             $table->foreign('request_id')->references('request_id')->on('emergency_requests')->cascadeOnDelete();

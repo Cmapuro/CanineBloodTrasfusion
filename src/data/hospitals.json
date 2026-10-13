@@ -1,8 +1,8 @@
 [
   {
     "id": 1,
-    "name": "Dr. Kang 24/7 Animal Emergency Clinic",
-    "type": "Veterinary clinic",
+    "name": "Dr. Kang Veterinary Clinic",
+    "type": "Accredited veterinary clinic",
     "city": "Tagum",
     "province": "Davao del Norte",
     "phone": "+63 975 078 4420",
@@ -11,8 +11,8 @@
   },
   {
     "id": 2,
-    "name": "Animal Doctors Veterinary Hospital Tagum",
-    "type": "Veterinary hospital",
+    "name": "Animal Doctor Hospital",
+    "type": "Accredited veterinary hospital",
     "city": "Tagum",
     "province": "Davao del Norte",
     "phone": "+63 975 078 4420",

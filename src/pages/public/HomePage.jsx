@@ -117,7 +117,7 @@ export function HomePage() {
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-red-50 mb-7">
                 <span className="w-2 h-2 rounded-full bg-rose-300 animate-pulse" />
-                A connected veterinary donor network
+                CanineLink system
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.05] tracking-tight mb-6 max-w-3xl">
                 The right canine donor, when every minute matters.
@@ -129,48 +129,46 @@ export function HomePage() {
                 <Link to="/donor/register" className="inline-flex items-center justify-center bg-white text-blood-red hover:bg-red-50 font-semibold py-3.5 px-7 rounded-xl transition shadow-lg shadow-black/10">
                   Register as Donor
                 </Link>
-                <Link to="/hospitals" className="inline-flex items-center justify-center border border-white/35 bg-white/10 text-white hover:bg-white hover:text-blood-red font-semibold py-3.5 px-7 rounded-xl transition">
+                <Link to="/veterinaryclinics" className="inline-flex items-center justify-center border border-white/35 bg-white/10 text-white hover:bg-white hover:text-blood-red font-semibold py-3.5 px-7 rounded-xl transition">
                   View veterinary clinics
                 </Link>
               </div>
               <div className="mt-9 flex flex-wrap gap-x-7 gap-y-3 text-sm text-red-50/75">
                 <span>Verified veterinary partners</span>
-                <span>Live donor coordination</span>
+                <span>Coordinated donor response</span>
                 <span>Secure records</span>
               </div>
             </div>
 
             {/* Right status panel */}
-            <div className="home-hero-panel">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-red-100/70">CanineLink network</p>
-                  <p className="text-lg font-bold text-white mt-1">Donor coordination, simplified</p>
+            <div className="home-hero-panel relative overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.22),_transparent_35%)]" />
+              <div className="relative">
+                <div className="mb-8">
+                  <p className="text-xs uppercase tracking-[0.2em] text-red-100/70">CanineLink</p>
+                  <p className="text-lg font-bold text-white mt-1">Donor coordination system</p>
                 </div>
-                <span className="inline-flex items-center gap-2 rounded-full bg-emerald-400/15 px-3 py-1.5 text-xs font-semibold text-emerald-200">
-                  <span className="w-2 h-2 rounded-full bg-emerald-300" /> Live
-                </span>
-              </div>
-              <div className="flex items-center gap-5 mb-8">
-              <LogoMark
-                size="xl"
-                rounded="rounded-3xl"
-                className="border-2 border-white/20 bg-white p-4 w-28 h-28 shadow-xl"
-                alt="Hero logo"
-              />
-                <div>
-                  <p className="text-2xl font-extrabold text-white">Ready to respond</p>
-                  <p className="text-sm text-red-50/70 mt-1">From first alert to verified arrival.</p>
+                <div className="flex items-center gap-5 mb-8">
+                  <LogoMark
+                    size="xl"
+                    rounded="rounded-3xl"
+                    className="border-2 border-white/20 bg-white p-4 w-28 h-28 shadow-xl"
+                    alt="Hero logo"
+                  />
+                  <div>
+                    <p className="text-2xl font-extrabold text-white">Ready to respond</p>
+                    <p className="text-sm text-red-50/70 mt-1">From first alert to verified arrival.</p>
+                  </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-white/10 border border-white/10 p-4">
-                  <p className="text-2xl font-bold text-white">24/7</p>
-                  <p className="text-xs text-red-50/65 mt-1">Network readiness</p>
-                </div>
-                <div className="rounded-2xl bg-white/10 border border-white/10 p-4">
-                  <p className="text-2xl font-bold text-white">1:1</p>
-                  <p className="text-xs text-red-50/65 mt-1">Clinic-to-donor link</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-white/10 border border-white/10 p-4">
+                    <p className="text-2xl font-bold text-white">24/7</p>
+                    <p className="text-xs text-red-50/65 mt-1">Network readiness</p>
+                  </div>
+                  <div className="rounded-2xl bg-white/10 border border-white/10 p-4">
+                    <p className="text-2xl font-bold text-white">1:1</p>
+                    <p className="text-xs text-red-50/65 mt-1">Clinic-to-donor link</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -216,8 +214,8 @@ export function HomePage() {
             <Link to="/donor/register" className="btn-primary px-8 py-3 text-lg">
               Get Started as Donor
             </Link>
-            <Link to="/hospitals" className="btn-secondary px-8 py-3 text-lg">
-              View Partner Hospitals
+            <Link to="/veterinaryclinics" className="btn-secondary px-8 py-3 text-lg">
+              View Veterinary Clinics
             </Link>
             <Link to="/contact" className="btn-secondary px-8 py-3 text-lg">
               Contact Us

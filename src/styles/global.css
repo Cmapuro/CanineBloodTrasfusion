@@ -31,11 +31,17 @@ body {
 }
 
 .home-hero-panel {
-  @apply rounded-3xl border border-white/15 bg-white/10 p-6 sm:p-8 shadow-2xl backdrop-blur-md;
+  @apply rounded-3xl border border-white/15 bg-white/10 p-6 sm:p-8 shadow-[0_20px_60px_rgba(69,10,31,0.38)] backdrop-blur-md;
 }
 
 .home-feature-tile {
   @apply rounded-2xl border border-red-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-red-200 hover:shadow-medium;
+}
+
+@media (min-width: 1024px) {
+  .home-hero-panel {
+    min-height: 420px;
+  }
 }
 
 .canine-map-pin {

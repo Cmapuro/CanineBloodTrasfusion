@@ -38,7 +38,7 @@ export function HospitalListPage() {
 
     const handleUpdate = (event) => {
       const updated = event?.detail?.hospitals
-      if (updated) {
+      if (Array.isArray(updated)) {
         setHospitals(updated)
         setUsingFallback(true)
       } else {
@@ -60,9 +60,11 @@ export function HospitalListPage() {
       <section className="bg-blood-light py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold text-blood-red mb-4">
-            Authorized Veterinary Clinics
+            Accredited Veterinary Clinics
           </h1>
-          <p className="text-gray-700 text-lg">Trusted veterinary clinics in the CanineLink network</p>
+          <p className="text-gray-700 text-lg">
+            Trusted accredited clinics we coordinate with for donor support and emergency response
+          </p>
         </div>
       </section>
 
@@ -71,9 +73,9 @@ export function HospitalListPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Summary */}
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{hospitals.length} Partner Clinics</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{hospitals.length} Accredited Clinics</h2>
             <p className="text-gray-600">
-              Clinic addresses and directions are shown when location data is available.
+              All listed veterinary clinics are verified accredited providers in our donor network
             </p>
             {usingFallback && <p className="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900" role="status">Live clinic data is unavailable. Showing saved directory information; directions require verified coordinates.</p>}
           </div>
