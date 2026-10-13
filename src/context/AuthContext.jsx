@@ -123,6 +123,20 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  const updateUserProfile = useCallback((profile) => {
+    if (!user) return
+    const updated = {
+      ...user,
+      full_name: profile.full_name,
+      name: profile.full_name,
+      email: profile.email,
+      phone: profile.phone,
+      address: profile.address,
+    }
+    setUser(updated)
+    localStorage.setItem('user', JSON.stringify(updated))
+  }, [user])
+
   /**
    * Check if user is authenticated
    * @returns {boolean} True if user is logged in
@@ -152,6 +166,7 @@ export function AuthProvider({ children }) {
     error,
     login,
     logout,
+    updateUserProfile,
     isAuthenticated,
     hasRole,
     backendRoles,

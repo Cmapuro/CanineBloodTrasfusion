@@ -19,6 +19,16 @@ class MatchDonorsForRequest
         'B-' => ['B-', 'O-'],
         'AB+' => ['AB+', 'AB-', 'A+', 'A-', 'B+', 'B-', 'O+', 'O-'],
         'AB-' => ['AB-', 'A-', 'B-', 'O-'],
+        'DEA 1.1 Positive' => ['DEA 1.1 Positive'],
+        'DEA 1.1 Negative' => ['DEA 1.1 Negative'],
+        'DEA 1.2' => ['DEA 1.2'],
+        'DEA 3' => ['DEA 3'],
+        'DEA 4' => ['DEA 4'],
+        'DEA 5' => ['DEA 5'],
+        'DEA 7' => ['DEA 7'],
+        'Dal' => ['Dal'],
+        'Kai 1' => ['Kai 1'],
+        'Kai 2' => ['Kai 2'],
     ];
 
     public function handle(EmergencyRequest $request): array

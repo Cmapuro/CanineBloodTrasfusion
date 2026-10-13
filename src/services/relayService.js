@@ -29,3 +29,8 @@ export const archiveDonorVerificationCode = async (codeId) => {
   const response = await apiClient.post(`/donor/verification-codes/${codeId}/archive`)
   return response.data
 }
+
+export const scanVerificationCode = async (qrPayload) => {
+  const response = await apiClient.post('/verification-codes/scan', { qr_payload: qrPayload })
+  return response.data
+}

@@ -6,12 +6,25 @@ import { LogoMark } from '../common/LogoMark'
  * Displays hospital/facility information in a card format
  * Features: hospital name, type badge, location, contact info
  */
-export function HospitalCard({ hospital, onClick }) {
+export function HospitalCard({ hospital }) {
+  const latitude = Number(hospital.latitude)
+  const longitude = Number(hospital.longitude)
+  const hasCoordinates = hospital.latitude !== null
+    && hospital.latitude !== undefined
+    && hospital.longitude !== null
+    && hospital.longitude !== undefined
+    && Number.isFinite(latitude)
+    && Number.isFinite(longitude)
+    && latitude >= -90
+    && latitude <= 90
+    && longitude >= -180
+    && longitude <= 180
+  const directionsUrl = hasCoordinates
+    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${latitude},${longitude}`)}`
+    : null
+
   return (
-    <div
-      onClick={onClick}
-      className="card hover:shadow-medium transition-all cursor-pointer h-full flex flex-col"
-    >
+    <div className="card hover:shadow-medium transition-all h-full flex flex-col">
       {/* Hospital Header */}
       <div className="mb-4">
         <h3 className="text-lg font-bold text-gray-900 mb-2">
@@ -30,7 +43,7 @@ export function HospitalCard({ hospital, onClick }) {
           <div>
             <p className="text-xs text-gray-500">Location</p>
             <p className="text-sm text-gray-700">
-              {hospital.city}, {hospital.province}
+              {[hospital.city, hospital.province].filter(Boolean).join(', ') || hospital.address || 'Address not provided'}
             </p>
           </div>
         </div>
@@ -64,9 +77,15 @@ export function HospitalCard({ hospital, onClick }) {
       </div>
 
       {/* Action Button */}
-      <button className="btn-primary mt-4 w-full text-sm">
-        View Details
-      </button>
+      {directionsUrl ? (
+        <a href={directionsUrl} target="_blank" rel="noopener noreferrer" className="btn-primary mt-4 w-full text-center text-sm">
+          Get Directions
+        </a>
+      ) : (
+        <span className="mt-4 block rounded-xl bg-gray-100 px-4 py-3 text-center text-sm font-semibold text-gray-500" aria-label="Directions unavailable because clinic coordinates are missing">
+          Directions unavailable
+        </span>
+      )}
     </div>
   )
 }

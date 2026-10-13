@@ -102,6 +102,36 @@ export const updateProfile = async (updateData) => {
   }
 }
 
+export const getDonorProfile = async () => {
+  const response = await apiClient.get('/donor/profile')
+  return response.data
+}
+
+export const saveDonorProfile = async (profile) => {
+  const response = await apiClient.put('/donor/profile', profile)
+  return response.data
+}
+
+export const getDonorDogs = async () => {
+  const response = await apiClient.get('/donor/dogs')
+  return response.data.dogs
+}
+
+export const getDonorClinics = async () => {
+  const response = await apiClient.get('/donor/clinics')
+  return response.data.clinics
+}
+
+export const createDonorDog = async (dog) => {
+  const response = await apiClient.post('/donor/dogs', dog)
+  return response.data
+}
+
+export const updateDonorDog = async (dogId, dog) => {
+  const response = await apiClient.patch(`/donor/dogs/${dogId}`, dog)
+  return response.data
+}
+
 /**
  * Change password
  * @param {string} currentPassword - Current password

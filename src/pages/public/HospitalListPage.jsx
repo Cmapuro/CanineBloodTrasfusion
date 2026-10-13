@@ -1,10 +1,8 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import PublicLayout from '../../components/layout/PublicLayout'
 import { HospitalCard } from '../../components/ui/HospitalCard'
 import hospitalsData from '../../data/hospitals.json'
-import hospitalService from '../../services/hospitalService'
-import { useEffect, useState } from 'react'
-import { LogoMark } from '../../components/common/LogoMark'
+import { getPublicClinics } from '../../services/hospitalService'
 
 /**
  * HospitalListPage Component
@@ -13,27 +11,41 @@ import { LogoMark } from '../../components/common/LogoMark'
  */
 export function HospitalListPage() {
   const [hospitals, setHospitals] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [usingFallback, setUsingFallback] = useState(false)
 
   useEffect(() => {
     let mounted = true
 
     const load = async () => {
       try {
-        const list = await hospitalService.getAllHospitals()
-        if (mounted) setHospitals(list || [])
+        const list = await getPublicClinics()
+        if (mounted) {
+          setHospitals(list)
+          setUsingFallback(false)
+        }
       } catch (e) {
-        if (mounted) setHospitals(hospitalsData)
+        if (mounted) {
+          setHospitals(hospitalsData)
+          setUsingFallback(true)
+        }
+      } finally {
+        if (mounted) setLoading(false)
       }
     }
 
     load()
 
-    const handleUpdate = (e) => {
-      const updated = e?.detail?.hospitals
-      if (updated) setHospitals(updated)
-      else load()
+    const handleUpdate = (event) => {
+      const updated = event?.detail?.hospitals
+      if (updated) {
+        setHospitals(updated)
+        setUsingFallback(true)
+      } else {
+        setLoading(true)
+        load()
+      }
     }
-
     window.addEventListener('hospitals-updated', handleUpdate)
 
     return () => {
@@ -50,9 +62,7 @@ export function HospitalListPage() {
           <h1 className="text-4xl font-bold text-blood-red mb-4">
             Authorized Veterinary Clinics
           </h1>
-          <p className="text-gray-700 text-lg">
-            Trusted partners and blood centers we coordinate with
-          </p>
+          <p className="text-gray-700 text-lg">Trusted veterinary clinics in the CanineLink network</p>
         </div>
       </section>
 
@@ -61,63 +71,26 @@ export function HospitalListPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Summary */}
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {hospitals.length} Partner Facilities
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{hospitals.length} Partner Clinics</h2>
             <p className="text-gray-600">
-              All hospitals and blood centers are verified and accredited partners
+              Clinic addresses and directions are shown when location data is available.
             </p>
+            {usingFallback && <p className="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900" role="status">Live clinic data is unavailable. Showing saved directory information; directions require verified coordinates.</p>}
           </div>
 
           {/* Hospital Cards Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {hospitals.map((hospital) => (
-              <HospitalCard
-                key={hospital.id}
-                hospital={hospital}
-                onClick={() => console.log('Hospital clicked:', hospital)}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Hospital Categories Section */}
-      <section className="py-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">Our Network</h2>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Hospitals */}
-            <div className="card text-center">
-              <LogoMark size="md" className="mx-auto mb-4" alt="Category logo" />
-              <h3 className="text-xl font-bold mb-2">General Hospitals</h3>
-              <p className="text-gray-600">
-                Full-service hospitals with complete blood banking facilities
-              </p>
-              <div className="mt-4 text-2xl font-bold text-blood-red">5</div>
+          {loading ? (
+            <div className="card py-16 text-center text-gray-500" role="status">Loading partner clinics...</div>
+          ) : hospitals.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {hospitals.map((hospital) => <HospitalCard key={hospital.id} hospital={hospital} />)}
             </div>
-
-            {/* Specialist Hospitals */}
-            <div className="card text-center">
-              <LogoMark size="md" className="mx-auto mb-4" alt="Category logo" />
-              <h3 className="text-xl font-bold mb-2">Specialist Centers</h3>
-              <p className="text-gray-600">
-                Specialized medical centers with specialized blood services
-              </p>
-              <div className="mt-4 text-2xl font-bold text-blood-red">2</div>
+          ) : (
+            <div className="card py-16 text-center">
+              <h3 className="text-xl font-bold text-gray-900">No active clinics listed</h3>
+              <p className="mt-2 text-gray-600">Please check back later for participating veterinary clinics.</p>
             </div>
-
-            {/* Blood Banks */}
-            <div className="card text-center">
-              <LogoMark size="md" className="mx-auto mb-4" alt="Category logo" />
-              <h3 className="text-xl font-bold mb-2">Blood Centers</h3>
-              <p className="text-gray-600">
-                Dedicated blood collection and distribution centers
-              </p>
-              <div className="mt-4 text-2xl font-bold text-blood-red">2</div>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 

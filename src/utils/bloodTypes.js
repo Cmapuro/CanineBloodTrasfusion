@@ -6,6 +6,19 @@
 // Array of all valid blood types
 export const BLOOD_TYPES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 
+export const CANINE_BLOOD_TYPES = [
+  'DEA 1.1 Positive',
+  'DEA 1.1 Negative',
+  'DEA 1.2',
+  'DEA 3',
+  'DEA 4',
+  'DEA 5',
+  'DEA 7',
+  'Dal',
+  'Kai 1',
+  'Kai 2',
+];
+
 // Blood type compatibility chart
 // Key is the recipient blood type, value is array of compatible donor blood types
 export const BLOOD_TYPE_COMPATIBILITY = {

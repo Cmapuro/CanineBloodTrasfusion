@@ -20,6 +20,13 @@ class DatabaseSeeder extends Seeder
             BloodType::updateOrCreate(['code' => $code], ['description' => "Canine blood type {$code}"]);
         }
 
+        foreach ([
+            'DEA 1.1 Positive', 'DEA 1.1 Negative', 'DEA 1.2', 'DEA 3', 'DEA 4',
+            'DEA 5', 'DEA 7', 'Dal', 'Kai 1', 'Kai 2',
+        ] as $code) {
+            BloodType::updateOrCreate(['code' => $code], ['description' => "Canine blood type {$code}"]);
+        }
+
         $office = DB::table('provincial_offices')->where('name', 'CanineLink Provincial Veterinary Office')->first();
         $officeId = $office?->office_id ?? DB::table('provincial_offices')->insertGetId([
             'name' => 'CanineLink Provincial Veterinary Office',
@@ -83,9 +90,9 @@ class DatabaseSeeder extends Seeder
                 'breed' => 'Golden Retriever',
                 'sex' => 'male',
                 'weight_kg' => 28.5,
-                'blood_type_id' => BloodType::where('code', 'O+')->value('blood_type_id'),
-                'eligibility_status' => 'verified',
-                'availability_status' => 'available',
+                'blood_type_id' => BloodType::where('code', 'DEA 1.1 Positive')->value('blood_type_id'),
+                'eligibility_status' => 'pending_review',
+                'availability_status' => 'unavailable',
                 'next_eligible_date' => now()->toDateString(),
             ]
         );
@@ -107,9 +114,9 @@ class DatabaseSeeder extends Seeder
                 'breed' => 'Labrador Retriever',
                 'sex' => 'female',
                 'weight_kg' => 24.2,
-                'blood_type_id' => BloodType::where('code', 'A+')->value('blood_type_id'),
-                'eligibility_status' => 'verified',
-                'availability_status' => 'available',
+                'blood_type_id' => BloodType::where('code', 'DEA 1.1 Negative')->value('blood_type_id'),
+                'eligibility_status' => 'pending_review',
+                'availability_status' => 'unavailable',
                 'next_eligible_date' => now()->toDateString(),
             ]
         );

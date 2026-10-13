@@ -1,28 +1,58 @@
 import React, { useState } from 'react'
-import { BLOOD_TYPES } from '../../utils/bloodTypes'
+import { CANINE_BLOOD_TYPES } from '../../utils/bloodTypes'
 
 const DOG_BREEDS = [
+  'Aspin (Asong Pinoy)',
+  'Chihuahua',
+  'Shih Tzu',
+  'Pomeranian',
+  'Toy Poodle',
+  'Maltese',
+  'Yorkshire Terrier',
+  'Miniature Pinscher',
+  'Dachshund',
+  'Beagle',
+  'Cocker Spaniel',
+  'French Bulldog',
+  'English Bulldog',
+  'Siberian Husky',
+  'Shiba Inu',
+  'Border Collie',
+  'Australian Shepherd',
   'Labrador Retriever',
   'Golden Retriever',
   'German Shepherd',
-  'Bulldog',
-  'Poodle',
-  'Beagle',
   'Rottweiler',
-  'Yorkshire Terrier',
-  'Boxer',
-  'Dachshund',
-  'Siberian Husky',
-  'Great Dane',
   'Doberman Pinscher',
-  'Australian Shepherd',
-  'Border Collie',
-  'Shih Tzu',
-  'Chihuahua',
+  'Great Dane',
+  'Saint Bernard',
+  'Belgian Malinois',
+  'American Bully',
+  'Boxer',
   'Pug',
-  'French Bulldog',
-  'Corgi',
-  'Other',
+  'Boston Terrier',
+  'Bichon Frise',
+  'Pekingese',
+  'Papillon',
+  'Miniature Schnauzer',
+  'Welsh Corgi',
+  'Jack Russell Terrier',
+  'Samoyed',
+  'Chow Chow',
+  'Akita Inu',
+  'Alaskan Malamute',
+  'Dalmatian',
+  'Cane Corso',
+  'Bullmastiff',
+  'Border Terrier',
+  'Lhasa Apso',
+  'Japanese Spitz',
+  'Pit Bull-type Dog',
+  'English Springer Spaniel',
+  'Italian Greyhound',
+  'Poodle',
+  'Pugapoo',
+  'Others',
 ]
 
 /**
@@ -71,6 +101,9 @@ export function EmergencyRequestForm({ onSubmit, loading = false }) {
     if (!formData.quantity) newErrors.quantity = 'Please enter quantity'
     if (parseInt(formData.quantity) <= 0) newErrors.quantity = 'Quantity must be greater than 0'
     if (!formData.patientName) newErrors.patientName = 'Patient name is required'
+    if (formData.patientBreed && !DOG_BREEDS.includes(formData.patientBreed)) {
+      newErrors.patientBreed = 'Choose a breed from the list or select Others'
+    }
     if (!formData.contactPerson) newErrors.contactPerson = 'Contact person name is required'
     if (!formData.contactPhone) newErrors.contactPhone = 'Contact phone is required'
 
@@ -113,7 +146,7 @@ export function EmergencyRequestForm({ onSubmit, loading = false }) {
           className={`form-control ${errors.bloodType ? 'border-red-500' : ''}`}
         >
           <option value="">-- Select blood type --</option>
-          {BLOOD_TYPES.map((type) => (
+          {CANINE_BLOOD_TYPES.map((type) => (
             <option key={type} value={type}>
               {type}
             </option>
@@ -126,23 +159,24 @@ export function EmergencyRequestForm({ onSubmit, loading = false }) {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Patient Breed</label>
-          <select
+          <label htmlFor="patientBreed" className="block text-sm font-medium text-gray-700 mb-2">Patient Breed</label>
+          <input
+            id="patientBreed"
+            type="text"
             name="patientBreed"
             value={formData.patientBreed}
             onChange={handleChange}
+            list="emergency-dog-breeds"
             className="form-control"
-          >
-            <option value="">-- Select breed --</option>
-            {DOG_BREEDS.map((breed) => (
-              <option key={breed} value={breed}>
-                {breed}
-              </option>
-            ))}
-          </select>
+            placeholder="Search or select a breed"
+          />
+          <datalist id="emergency-dog-breeds">
+            {DOG_BREEDS.map((breed) => <option key={breed} value={breed} />)}
+          </datalist>
+          {errors.patientBreed && <p className="mt-1 text-sm text-red-600">{errors.patientBreed}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Patient Weight (kg)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Patient Weight (kg) <span className="font-normal text-gray-500">Optional</span></label>
           <input type="number" min="0.1" step="0.1" name="patientWeightKg" value={formData.patientWeightKg} onChange={handleChange} placeholder="e.g. 24.5" className="form-control" />
         </div>
       </div>

@@ -29,6 +29,22 @@ export const getAllHospitals = async () => {
   }
 }
 
+export const getPublicClinics = async () => {
+  const response = await apiClient.get('/clinics')
+  return (response.data.clinics || []).map((clinic) => ({
+    id: clinic.clinic_id,
+    name: clinic.name,
+    type: 'Veterinary clinic',
+    city: '',
+    province: '',
+    phone: clinic.contact_phone || '',
+    email: clinic.email || '',
+    address: clinic.address || '',
+    latitude: clinic.latitude,
+    longitude: clinic.longitude,
+  }))
+}
+
 /**
  * Get hospital by ID
  * @param {number} hospitalID - Hospital ID

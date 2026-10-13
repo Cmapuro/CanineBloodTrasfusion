@@ -7,7 +7,7 @@ import { generateDonorID } from '../../utils/generateDonorID'
 import { Modal } from '../../components/common/Modal'
 import { PasswordInput } from '../../components/common/PasswordInput'
 import { validateEmail, validatePassword, validatePhone, validateName, validateAge } from '../../utils/validators'
-import { BLOOD_TYPES } from '../../utils/bloodTypes'
+import { CANINE_BLOOD_TYPES } from '../../utils/bloodTypes'
 import { registerDonor } from '../../services/authService'
 
 /**
@@ -257,7 +257,7 @@ export function DonorRegistrationPage() {
                   className={`form-control ${errors.bloodType ? 'border-red-500' : ''}`}
                 >
                   <option value="">-- Select DEA compatibility --</option>
-                  {BLOOD_TYPES.map((type) => (
+                  {CANINE_BLOOD_TYPES.map((type) => (
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>

@@ -164,7 +164,7 @@ class EmergencyRequestController extends Controller
             return response()->json(['message' => 'Request declined.']);
         }
 
-        $code = 'CNK-' . random_int(1000, 9999);
+        $code = 'CNK-' . Str::upper(Str::random(16));
         $verification = VerificationCode::create([
             'request_id' => $match->request_id,
             'match_id' => $match->match_id,

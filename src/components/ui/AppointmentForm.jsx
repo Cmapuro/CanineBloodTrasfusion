@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { BLOOD_TYPES } from '../../utils/bloodTypes'
+import { CANINE_BLOOD_TYPES } from '../../utils/bloodTypes'
 
 /**
  * AppointmentForm Component
@@ -140,7 +140,7 @@ export function AppointmentForm({ onSubmit, hospitals = [], loading = false }) {
           className={`form-control ${errors.bloodType ? 'border-red-500' : ''}`}
         >
           <option value="">-- Select your blood type --</option>
-          {BLOOD_TYPES.map((type) => (
+          {CANINE_BLOOD_TYPES.map((type) => (
             <option key={type} value={type}>
               {type}
             </option>
