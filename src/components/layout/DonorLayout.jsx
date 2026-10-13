@@ -47,7 +47,8 @@ export function DonorLayout({ children }) {
 
   useEffect(() => {
     getDonorMatches().then((matches) => {
-      const pending = matches.find((match) => !sessionStorage.getItem(`donor-match-seen-${match.match_id}`))
+      const pending = matches.find((match) => match.status === 'notified'
+        && !sessionStorage.getItem(`donor-match-seen-${match.match_id}`))
       if (pending) {
         setEmergencyMatch(pending)
         setPopupOpen(true)
@@ -116,7 +117,8 @@ export function DonorLayout({ children }) {
                 {emergencyMatch.clinic?.address && <p className="mt-3 text-sm text-gray-500">{emergencyMatch.clinic.address}</p>}
                 {emergencyMatch.clinic?.phone && <p className="text-sm text-gray-500">{emergencyMatch.clinic.phone}</p>}
               </div>
-              <p className="text-sm text-gray-500">You can accept or decline this request. Accepting generates a verification QR code for the clinic.</p>
+              <p className="text-sm text-gray-500">You can accept or decline this request. Your location is not shared unless you grant separate permission after accepting.</p>
+              {emergencyMatch.response_deadline && <p className="text-xs text-gray-500">Please respond by {new Date(emergencyMatch.response_deadline).toLocaleString()}.</p>}
               <div className="flex gap-3">
                 <button type="button" onClick={() => respond('declined')} disabled={responding} className="btn-secondary flex-1">Decline</button>
                 <button type="button" onClick={() => respond('accepted')} disabled={responding} className="btn-primary flex-1">{responding ? 'Processing...' : 'Accept request'}</button>

@@ -48,6 +48,11 @@ export const getDonationHistory = async (donorID) => {
   }
 }
 
+export const getOwnDonationHistory = async () => {
+  const response = await apiClient.get('/donor/donation-history')
+  return response.data
+}
+
 /**
  * Check if donor is eligible to donate
  * @param {number} donorID - Donor ID
@@ -156,6 +161,7 @@ export default {
   getAllDonors,
   getDonorById,
   getDonationHistory,
+  getOwnDonationHistory,
   checkEligibility,
   scheduleAppointment,
   getAppointments,

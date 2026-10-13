@@ -123,6 +123,16 @@ export const createEmergencyRequest = async (requestData) => {
   }
 }
 
+export const cancelEmergencyRequest = async (requestId) => {
+  const response = await apiClient.post(`/emergency-requests/${requestId}/cancel`)
+  return response.data
+}
+
+export const completeEmergencyRequest = async (requestId) => {
+  const response = await apiClient.post(`/emergency-requests/${requestId}/complete`)
+  return response.data
+}
+
 /**
  * Get emergency requests
  * @param {number} hospitalID - Hospital ID

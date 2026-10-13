@@ -23,7 +23,7 @@ class NearbyLocationsTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_map_returns_clinics_and_only_consented_verified_available_donors(): void
+    public function test_nearby_map_never_returns_donor_locations(): void
     {
         $clinicId = $this->makeClinic('Clinic A', 7.4475, 125.8078);
         $clinicUser = $this->makeUser('clinic_admin', $clinicId);
@@ -39,17 +39,11 @@ class NearbyLocationsTest extends TestCase
             '/api/nearby-locations?latitude=7.44&longitude=125.80&radius=10&type=all'
         )->assertOk();
 
-        $this->assertCount(2, $response->json('locations'));
-        $this->assertSame(['clinic', 'donor'], collect($response->json('locations'))->pluck('type')->sort()->values()->all());
-        $donor = collect($response->json('locations'))->firstWhere('type', 'donor');
-        $this->assertSame('O+', $donor['blood_type']);
-        $this->assertSame(1, $donor['donor_count']);
-        $this->assertSame(7.45, $donor['latitude']);
-        $this->assertArrayNotHasKey('owner_user_id', $donor);
-        $this->assertArrayNotHasKey('dog_id', $donor);
+        $this->assertCount(1, $response->json('locations'));
+        $this->assertSame(['clinic'], collect($response->json('locations'))->pluck('type')->all());
     }
 
-    public function test_cross_clinic_donor_requires_a_live_access_grant(): void
+    public function test_public_nearby_map_never_exposes_donors_even_with_a_clinic_access_grant(): void
     {
         $requestingClinicId = $this->makeClinic('Requesting Clinic', 7.4475, 125.8078);
         $owningClinicId = $this->makeClinic('Owning Clinic', 7.4510, 125.8090);
@@ -81,7 +75,7 @@ class NearbyLocationsTest extends TestCase
             'expires_at' => now()->addHour(),
             'revoked_at' => null,
         ]);
-        $this->getJson($url)->assertOk()->assertJsonCount(1, 'locations');
+        $this->getJson($url)->assertOk()->assertJsonCount(0, 'locations');
 
         DB::table('access_grants')->update(['expires_at' => now()->subMinute()]);
         $this->getJson($url)->assertOk()->assertJsonCount(0, 'locations');

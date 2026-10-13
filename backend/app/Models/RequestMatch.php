@@ -11,6 +11,7 @@ class RequestMatch extends Model
     protected $fillable = [
         'request_id', 'dog_id', 'compatibility_score', 'distance_km',
         'rank_order', 'status', 'notified_at', 'response_deadline', 'responded_at',
+        'location_permission_status', 'location_consent_at', 'location_expires_at',
     ];
 
     public function dog()
