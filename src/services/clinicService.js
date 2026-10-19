@@ -1,7 +1,17 @@
 import apiClient from './api'
 
+export const getPublicClinics = async () => {
+  const response = await apiClient.get('/clinics')
+  return response.data.clinics
+}
+
 export const getClinicProfile = async () => {
   const response = await apiClient.get('/clinic/profile')
+  return response.data
+}
+
+export const getClinicDashboardSummary = async () => {
+  const response = await apiClient.get('/clinic/dashboard/summary')
   return response.data
 }
 

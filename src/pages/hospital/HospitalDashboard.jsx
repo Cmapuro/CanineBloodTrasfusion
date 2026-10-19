@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import HospitalLayout from '../../components/layout/HospitalLayout'
 import { DashboardCard } from '../../components/ui/DashboardCard'
 import { DonorCard } from '../../components/ui/DonorCard'
 import { getClinicMatches, approveClinicMatch } from '../../services/relayService'
+import { getClinicDashboardSummary, getClinicDonorDogs } from '../../services/clinicService'
 
 /**
  * HospitalDashboard Component
@@ -11,10 +13,46 @@ import { getClinicMatches, approveClinicMatch } from '../../services/relayServic
 export function HospitalDashboard() {
   const [matches, setMatches] = useState([])
   const [busyMatch, setBusyMatch] = useState(null)
+  const [summary, setSummary] = useState(null)
+  const [loadingSummary, setLoadingSummary] = useState(true)
+  const [summaryError, setSummaryError] = useState('')
+  const [donors, setDonors] = useState([])
+  const [loadingDonors, setLoadingDonors] = useState(true)
+  const [donorError, setDonorError] = useState('')
+
+  const loadSummary = async () => {
+    setLoadingSummary(true)
+    setSummaryError('')
+    try {
+      setSummary(await getClinicDashboardSummary())
+    } catch (error) {
+      setSummaryError(error.response?.data?.message || 'Unable to load clinic totals.')
+    } finally {
+      setLoadingSummary(false)
+    }
+  }
+
+  const loadDonors = async () => {
+    setLoadingDonors(true)
+    setDonorError('')
+    try {
+      const clinicDogs = await getClinicDonorDogs()
+      setDonors(Array.isArray(clinicDogs) ? clinicDogs : [])
+    } catch (error) {
+      setDonorError(error.response?.data?.message || 'Unable to load clinic donors.')
+    } finally {
+      setLoadingDonors(false)
+    }
+  }
 
   useEffect(() => {
     getClinicMatches().then(setMatches).catch(() => setMatches([]))
+    loadSummary()
+    loadDonors()
   }, [])
+
+  const summaryValue = (key) => loadingSummary ? '...' : summaryError ? '—' : (summary?.[key] ?? 0)
+  const availableDonors = donors.filter((dog) => dog.eligibility_status === 'verified' && dog.availability_status === 'available')
 
   const approve = async (matchId) => {
     setBusyMatch(matchId)
@@ -31,12 +69,21 @@ export function HospitalDashboard() {
       <h1 className="text-4xl font-bold text-gray-900 mb-2">Veterinary Clinic Dashboard</h1>
       <p className="text-gray-600 mb-8">Match canine donors and coordinate emergency transfusions</p>
 
+      {summaryError && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+          <span>{summaryError}</span>
+          <button type="button" onClick={loadSummary} disabled={loadingSummary} className="font-semibold underline">
+            Retry totals
+          </button>
+        </div>
+      )}
+
       <div className="grid-responsive mb-12">
-        <DashboardCard title="Active Canine Donors" value="64" icon="DN" color="blood-red" />
-        <DashboardCard title="Pending Verification" value="8" icon="VD" color="yellow" />
-        <DashboardCard title="Emergency Requests" value="12" icon="ER" color="blue" />
-        <DashboardCard title="Available Donors" value="42" icon="BI" color="green" />
-        <DashboardCard title="Completed Transfusions" value="86" icon="LS" color="blue" />
+        <DashboardCard title="Active Canine Donors" value={summaryValue('active_donors')} icon="DN" color="blood-red" />
+        <DashboardCard title="Pending Verification" value={summaryValue('pending_verification')} icon="VD" color="yellow" />
+        <DashboardCard title="Emergency Requests" value={summaryValue('emergency_requests')} icon="ER" color="blue" />
+        <DashboardCard title="Available Donors" value={summaryValue('available_donors')} icon="BI" color="green" />
+        <DashboardCard title="Completed Transfusions" value={summaryValue('completed_transfusions')} icon="LS" color="blue" />
       </div>
 
       {matches.length > 0 && (
@@ -73,16 +120,27 @@ export function HospitalDashboard() {
       )}
 
       <div className="flex items-center justify-between mb-6">
-        <div><h2 className="text-2xl font-bold text-gray-900">Recommended Donors</h2><p className="text-gray-600 mt-1">Best available matches for today&apos;s cases</p></div>
-        <button className="btn-primary">View all donors</button>
+        <div><h2 className="text-2xl font-bold text-gray-900">Available Clinic Donors</h2><p className="text-gray-600 mt-1">Verified, available dogs registered with your clinic</p></div>
+        <Link to="/hospital/donor-list?filter=all" className="btn-primary">View all donors</Link>
       </div>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[
-          { name: 'Buddy', breed: 'Golden Retriever', bloodType: 'DEA 1 Compatible', distance: '2.5 km away', score: 95, weight: '32 kg', availability: 'Available' },
-          { name: 'Luna', breed: 'Labrador Retriever', bloodType: 'DEA 1 Compatible', distance: '4.1 km away', score: 91, weight: '28 kg', availability: 'Available' },
-          { name: 'Milo', breed: 'German Shepherd', bloodType: 'DEA 1 Negative', distance: '6.8 km away', score: 87, weight: '35 kg', availability: 'Pending Verification' },
-        ].map((donor) => <DonorCard key={donor.name} donor={donor} />)}
-      </div>
+      {donorError ? (
+        <div className="card flex flex-wrap items-center justify-between gap-3" role="alert">
+          <p className="text-sm text-red-700">{donorError}</p>
+          <button type="button" onClick={loadDonors} disabled={loadingDonors} className="btn-secondary">Retry</button>
+        </div>
+      ) : loadingDonors ? (
+        <div className="card py-10 text-center text-gray-500" role="status">Loading clinic donor records...</div>
+      ) : availableDonors.length === 0 ? (
+        <div className="card py-10 text-center">
+          <h3 className="font-bold text-gray-900">No available clinic donors</h3>
+          <p className="mt-1 text-sm text-gray-500">Verified donors marked available will appear here.</p>
+          <Link to="/hospital/donor-list?filter=all" className="btn-secondary mt-4 inline-flex">Review clinic donor records</Link>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {availableDonors.slice(0, 6).map((donor) => <DonorCard key={donor.dog_id} donor={donor} />)}
+        </div>
+      )}
     </HospitalLayout>
   )
 }

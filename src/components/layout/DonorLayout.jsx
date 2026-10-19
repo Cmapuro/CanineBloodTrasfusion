@@ -147,9 +147,29 @@ export function DonorLayout({ children }) {
 
         {/* Main Content Area */}
         <main
-          className="flex-1 transition-all"
+          className="flex-1 bg-blue-50/30 transition-all"
           style={{ marginLeft: sidebarWidth }}
         >
+          <header className="border-b-2 border-blood-red bg-blue-50/95">
+            <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between gap-4 pl-20 pr-6 md:px-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-white shadow-sm ring-2 ring-blood-red ring-offset-2 ring-offset-blue-50" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6">
+                    <circle cx="6.5" cy="8" r="1.8" fill="currentColor" />
+                    <circle cx="11" cy="5.8" r="1.8" fill="currentColor" />
+                    <circle cx="16" cy="6.5" r="1.8" fill="currentColor" />
+                    <circle cx="19" cy="10" r="1.6" fill="currentColor" />
+                    <path d="M12.7 10.2c-2.7 0-5.2 3.1-5.2 5.7a3.1 3.1 0 003.1 3.1c.9 0 1.4-.5 2.1-.5s1.3.5 2.2.5a3.1 3.1 0 003.1-3.1c0-2.6-2.6-5.7-5.3-5.7z" fill="currentColor" />
+                  </svg>
+                </span>
+                <div>
+                  <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-800">Dog Owner Portal</p>
+                  <p className="text-sm font-medium text-blue-950">Your donor account</p>
+                </div>
+              </div>
+              <span className="hidden text-xs font-bold uppercase tracking-[0.14em] text-blood-red sm:inline">CanineLink Donor</span>
+            </div>
+          </header>
           <div className="p-6 max-w-7xl mx-auto">
             {children}
           </div>

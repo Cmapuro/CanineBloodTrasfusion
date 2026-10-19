@@ -72,6 +72,31 @@ class DonorProfileController extends Controller
         return response()->json(['dogs' => $dogs]);
     }
 
+    public function donationHistory(Request $request): JsonResponse
+    {
+        $donations = DB::table('donation_history')
+            ->join('dogs', 'dogs.dog_id', '=', 'donation_history.dog_id')
+            ->join('clinics', 'clinics.clinic_id', '=', 'donation_history.clinic_id')
+            ->leftJoin('blood_types', 'blood_types.blood_type_id', '=', 'dogs.blood_type_id')
+            ->leftJoin('emergency_requests', 'emergency_requests.request_id', '=', 'donation_history.emergency_request_id')
+            ->where('dogs.owner_user_id', $request->user()->user_id)
+            ->orderByDesc('donation_history.donation_date')
+            ->orderByDesc('donation_history.donation_id')
+            ->get([
+                'donation_history.donation_id',
+                'donation_history.donation_date',
+                'donation_history.volume_ml',
+                'donation_history.product_type',
+                'donation_history.notes',
+                'dogs.name as dog_name',
+                'blood_types.code as blood_type',
+                'clinics.name as clinic_name',
+                'emergency_requests.patient_name as recipient_name',
+            ]);
+
+        return response()->json(['donations' => $donations]);
+    }
+
     public function clinics(): JsonResponse
     {
         $clinics = DB::table('clinics')

@@ -8,12 +8,14 @@ export function PasswordInput({
   placeholder,
   className = 'form-control',
   required = false,
+  ...inputProps
 }) {
   const [isVisible, setIsVisible] = useState(false)
 
   return (
     <div className="relative">
       <input
+        {...inputProps}
         id={id || name}
         type={isVisible ? 'text' : 'password'}
         name={name}

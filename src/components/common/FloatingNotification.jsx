@@ -1,43 +1,104 @@
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { getNotifications, markNotificationRead } from '../../services/notificationService'
 import { Modal } from './Modal'
 
+const notificationDestinations = {
+  donor: {
+    emergency_request: '/donor/emergency-requests',
+    match_found: '/donor/emergency-requests',
+    verification_result: '/donor/verification-qr',
+    default: '/donor/notifications',
+  },
+  hospital: {
+    emergency_request: '/hospital/emergency-request-history',
+    match_found: '/hospital/emergency-broadcast',
+    verification_result: '/hospital/qr-scan-verification',
+    default: '/hospital/notifications',
+  },
+  admin: {
+    default: '/admin/notifications',
+  },
+}
+
+const notificationTime = (value) => {
+  const timestamp = new Date(value).getTime()
+  if (Number.isNaN(timestamp)) return 'Date unavailable'
+
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000))
+  if (elapsedSeconds < 60) return 'Just now'
+  if (elapsedSeconds < 3600) return `${Math.floor(elapsedSeconds / 60)} min ago`
+  if (elapsedSeconds < 86400) return `${Math.floor(elapsedSeconds / 3600)} hr ago`
+  if (elapsedSeconds < 604800) return `${Math.floor(elapsedSeconds / 86400)} days ago`
+  return new Date(timestamp).toLocaleDateString()
+}
+
 export function FloatingNotification() {
-  const [unreadCount, setUnreadCount] = useState(0)
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [busyId, setBusyId] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
-  // Simulate notification count - in real app, this would come from API
-  useEffect(() => {
-    const notifications = JSON.parse(localStorage.getItem('notifications') || '[]')
-    const unread = notifications.filter(n => !n.read).length
-    setUnreadCount(unread)
+  const loadNotifications = useCallback(async (showLoading = false) => {
+    if (showLoading) setLoading(true)
+
+    try {
+      const data = await getNotifications()
+      setNotifications(Array.isArray(data) ? data : [])
+      setError('')
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || 'Notifications could not be refreshed.')
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  const mockNotifications = [
-    { id: 1, title: 'New Emergency Request', message: 'Blood type DEA 1.1+ needed urgently', time: '2 min ago', read: false },
-    { id: 2, title: 'Donor Available', message: 'Buddy is available for donation', time: '15 min ago', read: false },
-    { id: 3, title: 'QR Code Scanned', message: 'Transfusion record updated', time: '1 hour ago', read: true },
-  ]
+  useEffect(() => {
+    loadNotifications(true)
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === 'visible') loadNotifications()
+    }, 10000)
 
-  const handleNotificationClick = (notification) => {
-    setIsOpen(false)
-    // Navigate to appropriate page based on notification type
-    if (notification.title.includes('Emergency')) {
-      navigate('/hospital/emergency-broadcast')
-    } else if (notification.title.includes('Donor')) {
-      navigate('/hospital/donor-list')
-    } else if (notification.title.includes('QR')) {
-      navigate('/hospital/transfusion-history')
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') loadNotifications()
     }
-  }
 
-  const handleViewAll = () => {
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      window.clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
+  }, [loadNotifications])
+
+  const unreadCount = notifications.filter((notification) => !notification.is_read).length
+  const recentNotifications = notifications.slice(0, 4)
+  const allNotificationsPath = notificationDestinations[user?.role]?.default || '/donor/notifications'
+
+  const handleNotificationClick = async (notification) => {
     setIsOpen(false)
-    navigate('/hospital/notifications')
+    if (!notification.is_read) {
+      setBusyId(notification.notification_id)
+      try {
+        await markNotificationRead(notification.notification_id)
+        setNotifications((current) => current.map((item) =>
+          item.notification_id === notification.notification_id
+            ? { ...item, is_read: true }
+            : item
+        ))
+      } catch (requestError) {
+        setError(requestError.response?.data?.message || 'Unable to mark this notification as read.')
+      } finally {
+        setBusyId(null)
+      }
+    }
+
+    const roleDestinations = notificationDestinations[user?.role]
+    navigate(roleDestinations?.[notification.type] || roleDestinations?.default || allNotificationsPath)
   }
 
   const handleLogout = async () => {
@@ -48,20 +109,24 @@ export function FloatingNotification() {
 
   return (
     <>
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-3">
-        {/* Notification Button */}
+      <div className="fixed right-4 top-4 z-50 flex items-center gap-3">
         <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-blood-red text-white shadow-lg hover:bg-red-700 transition-colors"
-          aria-label="Notifications"
+          type="button"
+          onClick={() => {
+            setIsOpen((open) => !open)
+            if (!isOpen) loadNotifications()
+          }}
+          className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-blood-red text-white shadow-lg transition-colors hover:bg-red-700"
+          aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`}
+          aria-expanded={isOpen}
+          aria-haspopup="dialog"
         >
-          <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6" stroke="currentColor" strokeWidth="2">
+          <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" stroke="currentColor" strokeWidth="2">
             <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold text-gray-900">
-              {unreadCount}
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-yellow-400 px-1 text-xs font-bold text-gray-900">
+              {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
         </button>
@@ -82,58 +147,78 @@ export function FloatingNotification() {
 
       {isOpen && (
         <>
-          <div
-            className="fixed inset-0 z-40"
+          <button
+            type="button"
+            className="fixed inset-0 z-40 cursor-default"
+            aria-label="Close notifications"
             onClick={() => setIsOpen(false)}
           />
+          <section
+            className="fixed right-4 top-[4.5rem] z-50 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl"
+            aria-label="Notifications"
+            aria-live="polite"
+          >
+            <header className="flex items-center justify-between border-b border-gray-100 px-4 py-4">
+              <h2 className="font-bold text-gray-900">Notifications</h2>
+              <span className="text-xs font-semibold text-blood-red">{unreadCount} unread</span>
+            </header>
 
-          <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-white shadow-2xl border border-gray-100 z-50 overflow-hidden">
-            <div className="border-b border-gray-100 px-4 py-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-gray-900">Notifications</h3>
-                <span className="text-xs font-semibold text-blood-red">{unreadCount} unread</span>
+            {error && (
+              <div className="flex items-center justify-between gap-2 border-b border-red-100 bg-red-50 px-4 py-2 text-xs text-red-700" role="alert">
+                <span>{error}</span>
+                <button type="button" onClick={() => loadNotifications(true)} className="shrink-0 font-semibold underline">
+                  Retry
+                </button>
               </div>
-            </div>
+            )}
 
             <div className="max-h-96 overflow-y-auto">
-              {mockNotifications.length === 0 ? (
-                <div className="px-4 py-8 text-center text-gray-500">
-                  <svg viewBox="0 0 24 24" fill="none" className="w-12 h-12 mx-auto mb-2 text-gray-300" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <p className="text-sm">No notifications yet</p>
-                </div>
+              {loading && notifications.length === 0 ? (
+                <p className="px-4 py-8 text-center text-sm text-gray-500" role="status">Loading notifications...</p>
+              ) : recentNotifications.length === 0 ? (
+                <p className="px-4 py-8 text-center text-sm text-gray-500">No notifications yet.</p>
               ) : (
-                mockNotifications.map((notification) => (
-                  <button
-                    key={notification.id}
-                    onClick={() => handleNotificationClick(notification)}
-                    className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`mt-1 h-2 w-2 rounded-full ${notification.read ? 'bg-gray-300' : 'bg-blood-red'}`} />
-                      <div className="flex-1">
-                        <p className={`text-sm font-semibold ${notification.read ? 'text-gray-600' : 'text-gray-900'}`}>
-                          {notification.title}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">{notification.message}</p>
-                        <p className="text-xs text-gray-400 mt-1">{notification.time}</p>
-                      </div>
-                    </div>
-                  </button>
-                ))
+                <ul className="divide-y divide-gray-100">
+                  {recentNotifications.map((notification) => (
+                    <li key={notification.notification_id}>
+                      <button
+                        type="button"
+                        onClick={() => handleNotificationClick(notification)}
+                        disabled={busyId === notification.notification_id}
+                        className="flex w-full items-start gap-3 px-4 py-4 text-left transition-colors hover:bg-gray-50 disabled:opacity-60"
+                      >
+                        <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${
+                          notification.is_read ? 'bg-gray-300' : 'bg-red-600'
+                        }`} aria-label={notification.is_read ? 'Read' : 'Unread'} />
+                        <span className="min-w-0 flex-1">
+                          <span className={`block text-sm ${notification.is_read ? 'font-medium text-gray-600' : 'font-semibold text-gray-900'}`}>
+                            {notification.title}
+                          </span>
+                          <span className="mt-1 block text-sm text-gray-500">{notification.message}</span>
+                          <time className="mt-1.5 block text-xs text-gray-400" dateTime={notification.created_at}>
+                            {notificationTime(notification.created_at)}
+                          </time>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
 
-            <div className="border-t border-gray-100 px-4 py-3">
+            <footer className="border-t border-gray-100 px-4 py-3">
               <button
-                onClick={handleViewAll}
+                type="button"
+                onClick={() => {
+                  setIsOpen(false)
+                  navigate(allNotificationsPath)
+                }}
                 className="w-full text-center text-sm font-semibold text-blood-red hover:text-red-700"
               >
                 View All Notifications
               </button>
-            </div>
-          </div>
+            </footer>
+          </section>
         </>
       )}
 

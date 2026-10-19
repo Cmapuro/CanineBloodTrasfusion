@@ -1,14 +1,15 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import PublicLayout from '../../components/layout/PublicLayout'
 import { useContext } from 'react'
 import { NotificationContext } from '../../context/NotificationContext'
-import { generateDonorID } from '../../utils/generateDonorID'
 import { Modal } from '../../components/common/Modal'
 import { PasswordInput } from '../../components/common/PasswordInput'
-import { validateEmail, validatePassword, validatePhone, validateName, validateAge } from '../../utils/validators'
+import { validateEmail, validatePhone } from '../../utils/validators'
 import { CANINE_BLOOD_TYPES } from '../../utils/bloodTypes'
 import { registerDonor } from '../../services/authService'
+import { getPublicClinics } from '../../services/clinicService'
+import { useAuth } from '../../hooks/useAuth'
 
 /**
  * DonorRegistrationPage Component
@@ -18,35 +19,64 @@ import { registerDonor } from '../../services/authService'
 export function DonorRegistrationPage() {
   const navigate = useNavigate()
   const { success, error } = useContext(NotificationContext)
+  const { acceptRegistration } = useAuth()
 
-  // Form state
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    fullName: '',
     email: '',
     phone: '',
     password: '',
     confirmPassword: '',
-    age: '',
-    weight: '',
-    gender: '',
+    dogName: '',
+    breed: '',
+    ageYears: '',
+    weightKg: '',
+    sex: '',
     bloodType: '',
-    vaccinationStatus: '',
-    healthInformation: '',
-    address: '',
+    clinicId: '',
     agreeTerms: false,
   })
-
-  // Errors
+  const [clinics, setClinics] = useState([])
+  const [loadingClinics, setLoadingClinics] = useState(true)
+  const [clinicError, setClinicError] = useState('')
   const [errors, setErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
-  const [generatedDonorID, setGeneratedDonorID] = useState(null)
+  const [formError, setFormError] = useState('')
   const [showPrivacyModal, setShowPrivacyModal] = useState(false)
+  const [breedListOpen, setBreedListOpen] = useState(false)
+  const [activeBreedIndex, setActiveBreedIndex] = useState(0)
 
-  // Handle change
+  const dogBreeds = [
+    'Aspin', 'Australian Cattle Dog', 'Australian Shepherd', 'Beagle', 'Bernese Mountain Dog',
+    'Bichon Frise', 'Border Collie', 'Boxer', 'Bulldog', 'Cavalier King Charles Spaniel',
+    'Chihuahua', 'Cocker Spaniel', 'Dachshund', 'Doberman Pinscher', 'French Bulldog',
+    'German Shepherd', 'Golden Retriever', 'Great Dane', 'Jack Russell Terrier', 'Labrador Retriever',
+    'Maltese', 'Mixed breed', 'Pomeranian', 'Poodle', 'Pug', 'Rottweiler', 'Shih Tzu',
+    'Siberian Husky', 'Yorkshire Terrier',
+  ]
+  const matchingBreeds = dogBreeds.filter((breed) =>
+    breed.toLowerCase().includes(formData.breed.trim().toLowerCase())
+  )
+
+  const loadClinics = async () => {
+    setLoadingClinics(true)
+    setClinicError('')
+    try {
+      const activeClinics = await getPublicClinics()
+      setClinics(Array.isArray(activeClinics) ? activeClinics : [])
+    } catch {
+      setClinicError('Unable to load clinics. Check your connection and try again.')
+    } finally {
+      setLoadingClinics(false)
+    }
+  }
+
+  useEffect(() => {
+    loadClinics()
+  }, [])
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    // If the user is checking the agreeTerms box, show the privacy modal first
     if (name === 'agreeTerms' && type === 'checkbox' && checked) {
       setShowPrivacyModal(true)
       return
@@ -56,26 +86,52 @@ export function DonorRegistrationPage() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }))
+    if (name === 'breed') {
+      setBreedListOpen(true)
+      setActiveBreedIndex(0)
+    }
+    setFormError('')
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }))
     }
   }
 
-  // Validate form
+  const selectBreed = (breed) => {
+    setFormData((prev) => ({ ...prev, breed }))
+    setBreedListOpen(false)
+    setActiveBreedIndex(0)
+    if (errors.breed) {
+      setErrors((prev) => ({ ...prev, breed: '' }))
+    }
+  }
+
+  const handleBreedKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      setBreedListOpen(false)
+    } else if (e.key === 'ArrowDown' && matchingBreeds.length > 0) {
+      e.preventDefault()
+      setBreedListOpen(true)
+      setActiveBreedIndex((index) => Math.min(index + 1, matchingBreeds.length - 1))
+    } else if (e.key === 'ArrowUp' && matchingBreeds.length > 0) {
+      e.preventDefault()
+      setActiveBreedIndex((index) => Math.max(index - 1, 0))
+    } else if (e.key === 'Enter' && breedListOpen && matchingBreeds[activeBreedIndex]) {
+      e.preventDefault()
+      selectBreed(matchingBreeds[activeBreedIndex])
+    }
+  }
+
   const validateForm = () => {
     const newErrors = {}
 
-    if (!validateName(formData.firstName)) {
-      newErrors.firstName = 'First name is invalid'
-    }
-    if (!validateName(formData.lastName)) {
-      newErrors.lastName = 'Last name is invalid'
+    if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = 'Enter your full name.'
     }
     if (!validateEmail(formData.email)) {
-      newErrors.email = 'Email is invalid'
+      newErrors.email = 'Enter a valid email address.'
     }
     if (!validatePhone(formData.phone)) {
-      newErrors.phone = 'Phone number is invalid'
+      newErrors.phone = 'Enter a valid phone number.'
     }
     if (!formData.password || formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters'
@@ -83,11 +139,23 @@ export function DonorRegistrationPage() {
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match'
     }
-    if (!formData.age || Number(formData.age) < 1 || Number(formData.age) > 15) {
+    if (!formData.dogName.trim()) {
+      newErrors.dogName = 'Enter your dog’s name.'
+    }
+    if (!formData.breed.trim()) {
+      newErrors.breed = 'Select or enter your dog’s breed.'
+    }
+    if (!formData.ageYears || Number(formData.ageYears) < 1 || Number(formData.ageYears) > 15) {
       newErrors.age = 'Dog age must be between 1 and 15 years'
     }
-    if (!formData.bloodType) {
-      newErrors.bloodType = 'Please select the DEA compatibility'
+    if (!['male', 'female'].includes(formData.sex)) {
+      newErrors.sex = 'Select your dog’s sex.'
+    }
+    if (formData.weightKg && (Number(formData.weightKg) < 0.1 || Number(formData.weightKg) > 999.99)) {
+      newErrors.weightKg = 'Weight must be between 0.1 and 999.99 kg.'
+    }
+    if (!formData.clinicId) {
+      newErrors.clinicId = 'Choose a veterinary clinic to review this dog.'
     }
     if (!formData.agreeTerms) {
       newErrors.agreeTerms = 'You must agree to terms and conditions'
@@ -97,7 +165,6 @@ export function DonorRegistrationPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  // Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -107,34 +174,41 @@ export function DonorRegistrationPage() {
     }
 
     setIsLoading(true)
+    setFormError('')
 
     try {
       const response = await registerDonor({
-        full_name: `${formData.firstName} ${formData.lastName}`,
+        full_name: formData.fullName.trim(),
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
+        clinic_id: Number(formData.clinicId),
+        dog_name: formData.dogName.trim(),
+        breed: formData.breed.trim(),
+        age_years: Number(formData.ageYears),
+        sex: formData.sex,
+        weight_kg: formData.weightKg ? Number(formData.weightKg) : null,
+        blood_type: formData.bloodType || null,
       })
-      const donorID = generateDonorID()
-      setGeneratedDonorID(donorID)
-
-      success(`Registration successful! Your Donor ID: ${donorID}`)
-
-      localStorage.setItem('authToken', response.token)
-      localStorage.setItem('user', JSON.stringify({
-        ...response.user,
-        id: response.user.user_id,
-        name: response.user.full_name,
-        role: 'donor',
-        donorID,
-      }))
-
-      // Redirect to dashboard
-      setTimeout(() => {
-        navigate('/donor/dashboard')
-      }, 1500)
+      acceptRegistration(response)
+      success(`${response.dog.name} is registered and pending review at ${response.dog.clinic_name}.`)
+      navigate('/donor/dashboard', { replace: true })
     } catch (err) {
-      error('Registration failed. Please try again.')
+      const formFields = {
+        full_name: 'fullName',
+        dog_name: 'dogName',
+        age_years: 'age',
+        weight_kg: 'weightKg',
+        blood_type: 'bloodType',
+        clinic_id: 'clinicId',
+      }
+      const serverErrors = err.errors
+        ? Object.fromEntries(Object.entries(err.errors).map(([field, messages]) => [formFields[field] || field, messages[0]]))
+        : {}
+      setErrors((current) => ({ ...current, ...serverErrors }))
+      const message = err.message || 'Registration failed. Please try again.'
+      setFormError(message)
+      error(message)
     } finally {
       setIsLoading(false)
     }
@@ -143,213 +217,168 @@ export function DonorRegistrationPage() {
   return (
     <PublicLayout>
       <section className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-2xl mx-auto px-4">
-          {/* Header */}
-          <div className="mb-8 text-center">
-              <h1 className="text-4xl font-bold text-blood-red mb-2">Register Dog Donor</h1>
-              <p className="text-gray-600">Add a healthy canine donor to the CanineLink network</p>
-          </div>
+        <div className="mx-auto max-w-2xl px-4">
+          <header className="mb-8 text-center">
+            <h1 className="mb-2 text-4xl font-bold text-blood-red">Register Dog Donor</h1>
+            <p className="text-gray-600">Create your owner account and register your dog for clinic review.</p>
+          </header>
 
-          {/* Card */}
-          <div className="bg-white rounded-lg shadow-soft p-8">
-            {/* Progress Info */}
-            <div className="mb-8 p-4 bg-blue-50 rounded-lg">
+          <div className="rounded-lg bg-white p-6 shadow-soft sm:p-8">
+            <div className="mb-8 rounded-lg bg-blue-50 p-4">
               <p className="text-sm text-blue-800">
-                <span className="font-semibold">Your Canine Donor ID</span> will be auto-generated after registration
+                <span className="font-semibold">Your owner account and first dog profile</span> will be created together.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Dog identity */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Dog Name</label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className={`form-control ${errors.firstName ? 'border-red-500' : ''}`}
-                  />
-                  {errors.firstName && <p className="text-red-600 text-sm mt-1">{errors.firstName}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Breed</label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className={`form-control ${errors.lastName ? 'border-red-500' : ''}`}
-                  />
-                  {errors.lastName && <p className="text-red-600 text-sm mt-1">{errors.lastName}</p>}
-                </div>
-              </div>
+              {formError && <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">{formError}</p>}
 
-              {/* Owner contact */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={`form-control ${errors.email ? 'border-red-500' : ''}`}
-                />
-                {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
-              </div>
-
-              {/* Phone */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className={`form-control ${errors.phone ? 'border-red-500' : ''}`}
-                />
-                {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}
-              </div>
-
-              {/* Age and sex */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
-                  <input
-                    type="number"
-                    name="age"
-                    value={formData.age}
-                    onChange={handleChange}
-                    min="1"
-                    max="15"
-                    className={`form-control ${errors.age ? 'border-red-500' : ''}`}
-                  />
-                  {errors.age && <p className="text-red-600 text-sm mt-1">{errors.age}</p>}
+              <section aria-labelledby="owner-account-heading">
+                <div className="mb-4 border-b border-red-100 pb-2">
+                  <h2 id="owner-account-heading" className="text-lg font-bold text-gray-900">Owner account</h2>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Sex</label>
-                  <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleChange}
-                    className="form-control"
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field label="Full name" name="fullName" error={errors.fullName}>
+                    <input autoComplete="name" type="text" name="fullName" value={formData.fullName} onChange={handleChange} className="form-control" required />
+                  </Field>
+                  <Field label="Phone number" name="phone" error={errors.phone}>
+                    <input autoComplete="tel" type="tel" name="phone" value={formData.phone} onChange={handleChange} className="form-control" required />
+                  </Field>
+                  <Field label="Email address" name="email" error={errors.email} className="sm:col-span-2">
+                    <input autoComplete="email" type="email" name="email" value={formData.email} onChange={handleChange} className="form-control" required />
+                  </Field>
+                  <Field label="Password" name="password" error={errors.password}>
+                    <PasswordInput autoComplete="new-password" name="password" value={formData.password} onChange={handleChange} className="form-control" required />
+                  </Field>
+                  <Field label="Confirm password" name="confirmPassword" error={errors.confirmPassword}>
+                    <PasswordInput autoComplete="new-password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className="form-control" required />
+                  </Field>
+                </div>
+              </section>
+
+              <section aria-labelledby="dog-profile-heading">
+                <div className="mb-4 border-b border-red-100 pb-2">
+                  <h2 id="dog-profile-heading" className="text-lg font-bold text-gray-900">Dog donor profile</h2>
+                </div>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field label="Dog’s name" name="dogName" error={errors.dogName}>
+                    <input type="text" name="dogName" value={formData.dogName} onChange={handleChange} className="form-control" required />
+                  </Field>
+                  <div
+                    className="relative"
+                    onBlur={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget)) setBreedListOpen(false)
+                    }}
                   >
-                    <option value="">-- Select --</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                  </select>
+                    <label htmlFor="donor-registration-breed" className="mb-2 block text-sm font-semibold text-gray-800">Breed</label>
+                    <input
+                      id="donor-registration-breed"
+                      type="text"
+                      name="breed"
+                      value={formData.breed}
+                      onChange={handleChange}
+                      onFocus={() => setBreedListOpen(true)}
+                      onKeyDown={handleBreedKeyDown}
+                      placeholder="Search or enter a breed"
+                      className={`form-control ${errors.breed ? 'border-red-500' : ''}`}
+                      autoComplete="off"
+                      role="combobox"
+                      aria-autocomplete="list"
+                      aria-expanded={breedListOpen}
+                      aria-controls="donor-registration-breed-list"
+                      aria-activedescendant={breedListOpen && matchingBreeds[activeBreedIndex] ? `donor-registration-breed-option-${activeBreedIndex}` : undefined}
+                      aria-invalid={Boolean(errors.breed)}
+                      aria-describedby={errors.breed ? 'donor-registration-breed-error' : 'donor-registration-breed-hint'}
+                      required
+                    />
+                    {breedListOpen && (
+                      <div id="donor-registration-breed-list" role="listbox" className="absolute left-0 right-0 top-full z-30 mt-1 max-h-56 overflow-y-auto rounded-lg border border-red-100 bg-white p-1 text-gray-800 shadow-lg">
+                        {matchingBreeds.length ? matchingBreeds.map((breed) => {
+                          const optionIndex = matchingBreeds.indexOf(breed)
+                          return (
+                            <button
+                              key={breed}
+                              id={`donor-registration-breed-option-${optionIndex}`}
+                              type="button"
+                              role="option"
+                              aria-selected={optionIndex === activeBreedIndex}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onMouseEnter={() => setActiveBreedIndex(optionIndex)}
+                              onClick={() => selectBreed(breed)}
+                              className={`block w-full rounded-md px-3 py-2 text-left text-sm ${optionIndex === activeBreedIndex ? 'bg-red-50 font-semibold text-blood-red' : 'text-gray-800 hover:bg-gray-50'}`}
+                            >
+                              {breed}
+                            </button>
+                          )
+                        }) : (
+                          <p className="px-3 py-2 text-sm text-gray-500">No preset match. Your typed breed will be used.</p>
+                        )}
+                      </div>
+                    )}
+                    <p id="donor-registration-breed-hint" className="mt-1 text-xs text-gray-500">Choose a suggestion or type a breed not listed.</p>
+                    {errors.breed && <p id="donor-registration-breed-error" className="mt-1 text-sm text-red-600">{errors.breed}</p>}
+                  </div>
+                  <Field label="Age (years)" name="ageYears" error={errors.age}>
+                    <input type="number" name="ageYears" value={formData.ageYears} onChange={handleChange} min="1" max="15" step="1" className="form-control" required />
+                  </Field>
+                  <Field label="Sex" name="sex" error={errors.sex}>
+                    <select name="sex" value={formData.sex} onChange={handleChange} className="form-control" required>
+                      <option value="">Choose sex</option>
+                      <option value="female">Female</option>
+                      <option value="male">Male</option>
+                    </select>
+                  </Field>
+                  <Field label="Weight in kg (optional)" name="weightKg" error={errors.weightKg}>
+                    <input type="number" name="weightKg" value={formData.weightKg} onChange={handleChange} min="0.1" max="999.99" step="0.1" placeholder="Leave blank if unknown" className="form-control" />
+                  </Field>
+                  <Field label="DEA blood type (optional)" name="bloodType" error={errors.bloodType}>
+                    <select name="bloodType" value={formData.bloodType} onChange={handleChange} className="form-control">
+                      <option value="">Unknown or not tested</option>
+                      {CANINE_BLOOD_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+                    </select>
+                  </Field>
                 </div>
-              </div>
+              </section>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
-                <input type="number" name="weight" value={formData.weight} onChange={handleChange} min="1" className="form-control" />
-              </div>
-
-              {/* DEA compatibility */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">DEA Blood Type Compatibility</label>
-                <select
-                  name="bloodType"
-                  value={formData.bloodType}
-                  onChange={handleChange}
-                  className={`form-control ${errors.bloodType ? 'border-red-500' : ''}`}
-                >
-                  <option value="">-- Select DEA compatibility --</option>
-                  {CANINE_BLOOD_TYPES.map((type) => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-                {errors.bloodType && <p className="text-red-600 text-sm mt-1">{errors.bloodType}</p>}
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
+              <section aria-labelledby="clinic-review-heading">
+                <div className="mb-4 border-b border-red-100 pb-2">
+                  <h2 id="clinic-review-heading" className="text-lg font-bold text-gray-900">Veterinary clinic</h2>
+                  <p className="mt-1 text-sm text-gray-600">Choose the clinic that will review your dog’s donor registration.</p>
+                </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Vaccination Status</label>
-                  <select name="vaccinationStatus" value={formData.vaccinationStatus} onChange={handleChange} className="form-control">
-                    <option value="">-- Select status --</option>
-                    <option value="up-to-date">Up to date</option>
-                    <option value="due-soon">Due soon</option>
-                  </select>
+                  <label htmlFor="donor-registration-clinicId" className="mb-2 block text-sm font-semibold text-gray-800">Clinic for veterinary review</label>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <select id="donor-registration-clinicId" name="clinicId" value={formData.clinicId} onChange={handleChange} className={`form-control ${errors.clinicId || clinicError ? 'border-red-500' : ''}`} aria-invalid={Boolean(errors.clinicId || clinicError)} aria-describedby={errors.clinicId || clinicError ? 'donor-registration-clinicId-error' : undefined} required disabled={loadingClinics || clinics.length === 0}>
+                      <option value="">{loadingClinics ? 'Loading active clinics...' : clinics.length ? 'Select a clinic' : 'No active clinics available'}</option>
+                      {clinics.map((clinic) => (
+                        <option key={clinic.clinic_id} value={clinic.clinic_id}>
+                          {clinic.name}{clinic.address ? ` — ${clinic.address}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    {clinicError && <button type="button" onClick={loadClinics} disabled={loadingClinics} className="btn-secondary shrink-0">Retry</button>}
+                  </div>
+                  {(errors.clinicId || clinicError) && <p id="donor-registration-clinicId-error" className="mt-1 text-sm text-red-600">{errors.clinicId || clinicError}</p>}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Health Information</label>
-                  <input type="text" name="healthInformation" value={formData.healthInformation} onChange={handleChange} placeholder="Recent health notes" className="form-control" />
-                </div>
-              </div>
+              </section>
 
-              {/* Address */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  rows={2}
-                  className="form-control"
-                />
-              </div>
-
-              {/* Password Row */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                  <PasswordInput
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className={`form-control ${errors.password ? 'border-red-500' : ''}`}
-                    required
-                  />
-                  {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
-                  <PasswordInput
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className={`form-control ${errors.confirmPassword ? 'border-red-500' : ''}`}
-                    required
-                  />
-                  {errors.confirmPassword && <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>}
-                </div>
-              </div>
-
-              {/* Terms Checkbox */}
-              <div className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  name="agreeTerms"
-                  checked={formData.agreeTerms}
-                  onChange={handleChange}
-                  className="w-4 h-4 mt-1"
-                />
-                <label className="text-sm text-gray-700">
-                  I agree to the Terms and Conditions and Privacy Policy
+              <div className="border-t border-red-100 pt-6">
+                <label className="flex items-start gap-3 text-sm text-gray-700">
+                  <input type="checkbox" name="agreeTerms" checked={formData.agreeTerms} onChange={handleChange} className="mt-1 h-4 w-4 accent-blood-red" />
+                  <span>I agree to the Terms and Conditions and Privacy Policy.</span>
                 </label>
+                {errors.agreeTerms && <p className="mt-2 text-sm text-red-600">{errors.agreeTerms}</p>}
+                <button type="submit" disabled={isLoading || loadingClinics || clinics.length === 0} className="btn-primary mt-6 w-full disabled:cursor-not-allowed disabled:opacity-60">
+                  {isLoading ? 'Creating account and dog profile...' : 'Create donor account'}
+                </button>
               </div>
-              {errors.agreeTerms && <p className="text-red-600 text-sm">{errors.agreeTerms}</p>}
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="btn-primary w-full"
-              >
-                {isLoading ? 'Creating Account...' : 'Register as Donor'}
-              </button>
             </form>
-
-            {/* Login Link */}
-            <p className="text-center text-gray-600 mt-6">
-              Already have an account?{' '}
-              <Link to="/donor/login" className="text-blood-red font-semibold hover:text-blood-dark">
-                Sign in here
-              </Link>
-            </p>
           </div>
+
+          <p className="mt-6 text-center text-sm text-gray-600">
+            Already have an account?{' '}
+            <Link to="/donor/login" className="font-semibold text-blood-red hover:text-blood-dark">Sign in</Link>
+          </p>
         </div>
       </section>
 
@@ -365,28 +394,31 @@ export function DonorRegistrationPage() {
         confirmText="I accept"
         cancelText="Cancel"
       >
-        <div className="text-sm text-gray-700 space-y-3">
-          <p>
-            We collect and process your personal information for the purpose of registering and managing your blood donation records. Your data will be used only for legitimate health and donation-related activities, such as appointment scheduling, donor identification, and emergency notifications.
-          </p>
-          <p>
-            We implement reasonable administrative, technical, and physical safeguards to protect your personal information against unauthorized access, alteration, or disclosure. Only authorized personnel and partner hospitals will have access to the data necessary to perform their duties.
-          </p>
-          <p>
-            You have the right to access, correct, or request deletion of your personal information in accordance with the Data Privacy Act of 2012. To exercise these rights, please contact our data protection officer or reach out through the provided support channels.
-          </p>
-          <p>
-            We retain personal information only for as long as necessary to fulfill the purposes for which it was collected, or as required by law. When your data is no longer needed, we will securely dispose of or anonymize it.
-          </p>
-          <p>
-            By accepting, you consent to the processing of your personal information under the terms described above. You may withdraw consent at any time, subject to legal or contractual restrictions and reasonable notice.
-          </p>
-          <p>
-            For more information about how we handle personal data, or to submit a privacy request, please consult our full Privacy Policy or contact our Data Protection Officer at the email address listed in the footer.
-          </p>
+        <div className="space-y-3 text-sm text-gray-700">
+          <p>Your contact details and your dog’s profile will be used to manage donor registration, clinic review, and emergency donation coordination.</p>
+          <p>The selected clinic receives the dog information needed to review eligibility. Other owners cannot view your account or dog profile.</p>
+          <p>You may request access to, correction of, or deletion of your personal information under the Data Privacy Act of 2012 by contacting CanineLink support.</p>
         </div>
       </Modal>
     </PublicLayout>
+  )
+}
+
+function Field({ label, name, error, hint, className = '', children }) {
+  const fieldId = `donor-registration-${name}`
+
+  return (
+    <div className={className}>
+      <label htmlFor={fieldId} className="mb-2 block text-sm font-semibold text-gray-800">{label}</label>
+      {React.cloneElement(children, {
+        id: fieldId,
+        'aria-invalid': Boolean(error),
+        'aria-describedby': error ? `${fieldId}-error` : undefined,
+        className: `${children.props.className || ''} ${error ? 'border-red-500' : ''}`.trim(),
+      })}
+      {hint && <p className="mt-1 text-xs text-gray-500">{hint}</p>}
+      {error && <p id={`${fieldId}-error`} className="mt-1 text-sm text-red-600">{error}</p>}
+    </div>
   )
 }
 

@@ -34,6 +34,7 @@ import DonorListPage from './pages/hospital/DonorListPage'
 import QrScanVerificationPage from './pages/hospital/QrScanVerificationPage'
 import TransfusionHistoryPage from './pages/hospital/TransfusionHistoryPage'
 import NearbyLocationsPage from './pages/hospital/NearbyLocationsPage'
+import HospitalNotificationsPage from './pages/hospital/HospitalNotificationsPage'
 
 // Admin Pages
 import AdminLoginPage from './pages/admin/AdminLoginPage'
@@ -232,6 +233,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/hospital/notifications"
+              element={
+                <ProtectedRoute requiredRole="hospital">
+                  <HospitalNotificationsPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* ===== ADMIN ROUTES ===== */}
             <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -286,6 +295,14 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="admin">
                   <ReportsAnalyticsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/notifications"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <HospitalNotificationsPage />
                 </ProtectedRoute>
               }
             />

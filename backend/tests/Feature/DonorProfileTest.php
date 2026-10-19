@@ -84,6 +84,36 @@ class DonorProfileTest extends TestCase
         ]);
     }
 
+    public function test_owner_sees_only_donation_history_for_their_own_dogs(): void
+    {
+        $clinicId = $this->makeClinic();
+        $owner = $this->makeUser('dog_owner', $clinicId);
+        $otherOwner = $this->makeUser('dog_owner', $clinicId);
+        $bloodTypeId = $this->makeBloodType('DEA 1.1 Positive');
+        $dogId = $this->makeDog($owner, $clinicId, $bloodTypeId, 'Buddy', 'verified');
+        $otherDogId = $this->makeDog($otherOwner, $clinicId, $bloodTypeId, 'Other Dog', 'verified');
+
+        foreach ([[$dogId, '2026-10-10'], [$otherDogId, '2026-10-11']] as [$donorDogId, $date]) {
+            DB::table('donation_history')->insert([
+                'dog_id' => $donorDogId,
+                'clinic_id' => $clinicId,
+                'donation_date' => $date,
+                'volume_ml' => 250,
+                'product_type' => 'whole_blood',
+                'notes' => 'Recorded donation',
+                'created_at' => now(),
+            ]);
+        }
+
+        $this->actingAs($owner)
+            ->getJson('/api/donor/donation-history')
+            ->assertOk()
+            ->assertJsonCount(1, 'donations')
+            ->assertJsonPath('donations.0.dog_name', 'Buddy')
+            ->assertJsonPath('donations.0.clinic_name', 'Test Clinic')
+            ->assertJsonPath('donations.0.product_type', 'whole_blood');
+    }
+
     public function test_owner_can_save_an_untested_dog_but_human_abo_types_are_rejected(): void
     {
         $clinicId = $this->makeClinic();

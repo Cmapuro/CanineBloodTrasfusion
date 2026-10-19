@@ -9,9 +9,11 @@ use App\Http\Controllers\NearbyLocationController;
 use App\Http\Controllers\ScanVerificationCodeController;
 use App\Http\Controllers\DonorProfileController;
 use App\Http\Controllers\ClinicDonorReviewController;
+use App\Http\Controllers\ClinicDashboardController;
 use App\Http\Controllers\ClinicDirectoryController;
 
 Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/auth/register/donor', [AuthController::class, 'registerDonor']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/clinics', [ClinicDirectoryController::class, 'index']);
 
@@ -23,12 +25,14 @@ Route::middleware(['auth:sanctum', 'role:dog_owner'])->prefix('donor')->group(fu
     Route::get('/profile', [DonorProfileController::class, 'show']);
     Route::put('/profile', [DonorProfileController::class, 'updateProfile']);
     Route::get('/dogs', [DonorProfileController::class, 'dogs']);
+    Route::get('/donation-history', [DonorProfileController::class, 'donationHistory']);
     Route::post('/dogs', [DonorProfileController::class, 'storeDog']);
     Route::patch('/dogs/{dogId}', [DonorProfileController::class, 'updateDog']);
     Route::get('/clinics', [DonorProfileController::class, 'clinics']);
 });
 
 Route::middleware(['auth:sanctum', 'role:clinic_admin,clinic_staff'])->prefix('clinic')->group(function () {
+    Route::get('/dashboard/summary', [ClinicDashboardController::class, 'summary']);
     Route::get('/donor-dogs', [ClinicDonorReviewController::class, 'index']);
     Route::patch('/donor-dogs/{dogId}/verification', [ClinicDonorReviewController::class, 'review']);
 });

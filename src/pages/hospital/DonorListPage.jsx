@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import HospitalLayout from '../../components/layout/HospitalLayout'
 import { getClinicDonorDogs, reviewClinicDonorDog } from '../../services/clinicService'
 import { CANINE_BLOOD_TYPES } from '../../utils/bloodTypes'
@@ -18,8 +19,12 @@ const statusClasses = {
 }
 
 export function DonorListPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [dogs, setDogs] = useState([])
-  const [filter, setFilter] = useState('pending_review')
+  const [filter, setFilter] = useState(() => {
+    const requestedFilter = searchParams.get('filter')
+    return ['pending_review', 'verified', 'rejected', 'all'].includes(requestedFilter) ? requestedFilter : 'pending_review'
+  })
   const [reviewForms, setReviewForms] = useState({})
   const [savingDog, setSavingDog] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -92,7 +97,11 @@ export function DonorListPage() {
           </div>
           <label className="text-sm font-semibold text-gray-700">
             Review status
-            <select value={filter} onChange={(event) => setFilter(event.target.value)} className="form-control mt-1 min-w-48">
+            <select value={filter} onChange={(event) => {
+              const nextFilter = event.target.value
+              setFilter(nextFilter)
+              setSearchParams(nextFilter === 'pending_review' ? {} : { filter: nextFilter })
+            }} className="form-control mt-1 min-w-48">
               <option value="pending_review">Awaiting review</option>
               <option value="verified">Verified</option>
               <option value="rejected">Rejected</option>

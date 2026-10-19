@@ -189,6 +189,7 @@ export function Sidebar() {
 
   // Get authentication context
   const { user } = useAuth()
+  const isDonor = user?.role === 'donor'
 
   // Get current location
   const location = useLocation()
@@ -273,6 +274,11 @@ export function Sidebar() {
           path: '/hospital/emergency-request-history',
         },
         {
+          icon: 'NT',
+          label: 'Notifications',
+          path: '/hospital/notifications',
+        },
+        {
           icon: 'HP',
           label: 'Clinic Profile',
           path: '/hospital/profile',
@@ -300,6 +306,11 @@ export function Sidebar() {
           label: 'Reports',
           path: '/admin/reports',
         },
+        {
+          icon: 'NT',
+          label: 'Notifications',
+          path: '/admin/notifications',
+        },
       ],
     }
 
@@ -324,8 +335,8 @@ export function Sidebar() {
             </div>
             {isOpen && (
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-white/60">CanineLink</p>
-                <p className="text-sm font-semibold text-white">Veterinary Network</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-white/70">CanineLink</p>
+                <p className="text-sm font-semibold text-white">{isDonor ? 'Dog Owner Portal' : user?.role === 'hospital' ? 'Clinic Workspace' : 'Veterinary Network'}</p>
               </div>
             )}
           </div>
@@ -382,7 +393,7 @@ export function Sidebar() {
         <button
           onClick={() => setIsOpen(true)}
           className="fixed left-4 top-4 md:hidden z-50 w-12 h-12 rounded-2xl bg-blood-red text-white shadow-lg flex items-center justify-center"
-          aria-label="Open admin sidebar"
+          aria-label={`Open ${isDonor ? 'donor' : user?.role === 'hospital' ? 'clinic' : 'admin'} menu`}
         >
           <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" aria-hidden="true">
             <path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />

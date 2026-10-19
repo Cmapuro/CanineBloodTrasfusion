@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import { EmergencyRequestCard } from '../../components/ui/EmergencyRequestCard'
 import QRCode from 'qrcode'
 import { getDonorMatches, respondToDonorMatch } from '../../services/relayService'
+import { getDonorDonationHistory } from '../../services/authService'
 
 /**
  * DonorDashboard Component
@@ -16,13 +17,36 @@ export function DonorDashboard() {
   const [matches, setMatches] = useState([])
   const [responding, setResponding] = useState(null)
   const [verification, setVerification] = useState(null)
+  const [loadingMatches, setLoadingMatches] = useState(true)
+  const [requestError, setRequestError] = useState('')
+  const [donationHistory, setDonationHistory] = useState([])
+  const [loadingHistory, setLoadingHistory] = useState(true)
+  const [historyError, setHistoryError] = useState('')
+
+  const loadMatches = async () => {
+    setLoadingMatches(true)
+    setRequestError('')
+    try {
+      const result = await getDonorMatches()
+      setMatches(Array.isArray(result) ? result : [])
+    } catch (error) {
+      setRequestError(error.response?.data?.message || 'Unable to load emergency requests. Please try again.')
+    } finally {
+      setLoadingMatches(false)
+    }
+  }
 
   useEffect(() => {
-    getDonorMatches().then(setMatches).catch(() => setMatches([]))
+    loadMatches()
+    getDonorDonationHistory()
+      .then((donations) => setDonationHistory(Array.isArray(donations) ? donations : []))
+      .catch((error) => setHistoryError(error.response?.data?.message || 'Unable to load donation history.'))
+      .finally(() => setLoadingHistory(false))
   }, [])
 
   const respond = async (matchId, decision) => {
-    setResponding(matchId)
+    setResponding({ matchId, decision })
+    setRequestError('')
     try {
       const result = await respondToDonorMatch(matchId, decision)
       setMatches((current) => current.filter((match) => match.match_id !== matchId))
@@ -30,6 +54,8 @@ export function DonorDashboard() {
         const qrDataUrl = await QRCode.toDataURL(result.qr_payload, { width: 240, margin: 2, errorCorrectionLevel: 'M' })
         setVerification({ ...result, qrDataUrl })
       }
+    } catch (error) {
+      setRequestError(error.response?.data?.message || error.message || 'Unable to respond to this request. Please try again.')
     } finally {
       setResponding(null)
     }
@@ -39,10 +65,11 @@ export function DonorDashboard() {
     <DonorLayout>
       {/* Welcome Section */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">
-          Welcome to CanineLink, {user?.name || 'Dog Owner'}!
+        <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-blood-red">Dog owner dashboard</p>
+        <h1 className="mb-2 text-3xl font-bold text-gray-900 sm:text-4xl">
+          Your donor dashboard
         </h1>
-        <p className="text-gray-600">Manage your dogs and help coordinate lifesaving transfusions</p>
+        <p className="text-gray-600">Welcome, {user?.name || 'Dog Owner'}. Manage your dogs, donor requests, and transfusion records.</p>
       </div>
 
       {/* Stats Cards */}
@@ -56,7 +83,7 @@ export function DonorDashboard() {
         />
         <DashboardCard
           title="Successful Transfusions"
-          value="5"
+          value={loadingHistory ? '...' : historyError ? '—' : donationHistory.length}
           icon="LS"
           color="green"
         />
@@ -78,35 +105,50 @@ export function DonorDashboard() {
         </div>
       </div>
 
-      {/* Recent Donations */}
-      {matches.length > 0 && (
-        <div className="card mb-8 border-rose-200 bg-rose-50/60">
-          <p className="text-sm font-bold uppercase tracking-wide text-blood-red mb-2">Emergency donor request</p>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">A clinic needs your help</h2>
-          <p className="text-gray-600 mb-5">Your verified dog has been selected as a compatible donor. Accepting will generate a verification QR code.</p>
+      <section className="mb-8" aria-labelledby="dashboard-emergency-requests">
+        <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-blood-red">Donor coordination</p>
+            <h2 id="dashboard-emergency-requests" className="mt-1 text-2xl font-bold text-gray-900">Emergency Requests</h2>
+            <p className="mt-1 text-sm text-gray-600">Requests approved by a clinic for one of your dogs.</p>
+          </div>
+          <button type="button" onClick={loadMatches} disabled={loadingMatches} className="btn-secondary self-start sm:self-auto">
+            {loadingMatches ? 'Refreshing...' : 'Refresh requests'}
+          </button>
+        </div>
+
+        {requestError && <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">{requestError}</p>}
+
+        {loadingMatches ? (
+          <div className="card py-10 text-center text-gray-500" role="status">Checking for emergency requests...</div>
+        ) : matches.length === 0 ? (
+          <div className="card py-10 text-center">
+            <h3 className="font-bold text-gray-900">No active emergency requests</h3>
+            <p className="mt-1 text-sm text-gray-500">New clinic-approved requests for your dogs will appear here.</p>
+          </div>
+        ) : (
           <div className="space-y-4">
             {matches.map((match) => (
-              <div key={match.match_id} className="rounded-2xl bg-white border border-red-100 p-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="font-bold text-gray-900">For patient: {match.patient_name}</p>
-                    <p className="text-sm text-gray-600">Blood needed: {match.blood_type} · Your donor: {match.donor_name}</p>
-                  </div>
-                  <span className="badge badge-danger">{match.urgency_level}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-3 mt-5">
-                  <button type="button" disabled={responding === match.match_id} onClick={() => respond(match.match_id, 'accepted')} className="btn-primary flex-1">
-                    {responding === match.match_id ? 'Processing...' : 'Accept request'}
-                  </button>
-                  <button type="button" disabled={responding === match.match_id} onClick={() => respond(match.match_id, 'declined')} className="btn-secondary flex-1">
-                    Decline
-                  </button>
-                </div>
-              </div>
+              <EmergencyRequestCard
+                key={match.match_id}
+                request={{
+                  patient: match.patient_name || 'Patient name unavailable',
+                  clinic: match.clinic?.name || 'Veterinary clinic',
+                  required: match.blood_type || 'Blood type not specified',
+                  donor: match.donor_name || 'Registered dog',
+                  compatibility: match.compatibility_score,
+                  deadline: match.response_deadline,
+                  urgency: match.urgency_level || 'Urgent',
+                }}
+                isProcessing={responding !== null}
+                processingDecision={responding?.matchId === match.match_id ? responding.decision : null}
+                onAccept={() => respond(match.match_id, 'accepted')}
+                onDecline={() => respond(match.match_id, 'declined')}
+              />
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </section>
 
       {verification && (
         <div className="card mb-8 border-emerald-200 bg-emerald-50/60">
@@ -123,30 +165,27 @@ export function DonorDashboard() {
         </div>
       )}
 
-      {/* Recent Donations */}
       <div className="card">
-        <h2 className="text-xl font-bold mb-4 text-gray-900">Emergency Requests</h2>
-        <EmergencyRequestCard
-          request={{ patient: 'Buddy', clinic: 'ABC Veterinary Clinic', required: 'DEA 1 Compatible', distance: '3 km', urgency: 'Critical' }}
-          onAccept={() => {}}
-          onDecline={() => {}}
-        />
         <h2 className="text-xl font-bold mt-8 mb-4 text-gray-900">Donation History</h2>
-        <div className="space-y-3">
-          {[
-            { date: 'May 15, 2026', hospital: 'Tagum Medical City', status: 'Completed' },
-            { date: 'April 20, 2026', hospital: 'Christ the King Hospital', status: 'Completed' },
-            { date: 'March 25, 2026', hospital: 'Davao Regional Medical Center', status: 'Completed' },
-          ].map((donation, idx) => (
-            <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-semibold text-gray-900">{donation.hospital}</p>
-                <p className="text-sm text-gray-600">{donation.date}</p>
+        {loadingHistory ? (
+          <p className="text-sm text-gray-500">Loading recorded donations...</p>
+        ) : historyError ? (
+          <p className="text-sm text-red-700" role="alert">{historyError}</p>
+        ) : donationHistory.length === 0 ? (
+          <p className="text-sm text-gray-500">No donations recorded yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {donationHistory.slice(0, 3).map((donation) => (
+              <div key={donation.donation_id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-gray-50 p-3">
+                <div>
+                  <p className="font-semibold text-gray-900">{donation.clinic_name}</p>
+                  <p className="text-sm text-gray-600">{donation.dog_name} · {donation.donation_date ? new Date(`${donation.donation_date}T00:00:00`).toLocaleDateString() : 'Date not recorded'}</p>
+                </div>
+                <span className="badge badge-success">Completed</span>
               </div>
-              <span className="badge badge-success">{donation.status}</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </DonorLayout>
   )

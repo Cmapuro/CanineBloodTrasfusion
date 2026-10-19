@@ -1,7 +1,11 @@
 import React from 'react'
 import StatusBadge from './StatusBadge'
 
-export function EmergencyRequestCard({ request, onAccept, onDecline }) {
+export function EmergencyRequestCard({ request, onAccept, onDecline, isProcessing = false, processingDecision = null }) {
+  const responseDeadline = request.deadline
+    ? new Date(request.deadline).toLocaleString()
+    : 'Not specified'
+
   return (
     <article className="card border-l-4 border-red-500">
       <div className="flex items-start justify-between gap-4 mb-4">
@@ -14,11 +18,17 @@ export function EmergencyRequestCard({ request, onAccept, onDecline }) {
       </div>
       <div className="grid grid-cols-2 gap-4 text-sm mb-5">
         <div><p className="text-gray-500">Required</p><p className="font-semibold">{request.required}</p></div>
-        <div><p className="text-gray-500">Distance</p><p className="font-semibold">{request.distance}</p></div>
+        <div><p className="text-gray-500">Your dog</p><p className="font-semibold">{request.donor}</p></div>
+        <div><p className="text-gray-500">Compatibility</p><p className="font-semibold">{request.compatibility == null ? 'Not provided' : `${request.compatibility}%`}</p></div>
+        <div><p className="text-gray-500">Respond by</p><p className="font-semibold">{responseDeadline}</p></div>
       </div>
       <div className="flex flex-wrap gap-3">
-        <button onClick={onAccept} className="btn-primary flex-1 min-w-32">Accept request</button>
-        <button onClick={onDecline} className="btn-secondary flex-1 min-w-32">Decline</button>
+        <button type="button" disabled={isProcessing} onClick={onAccept} className="btn-primary flex-1 min-w-32 disabled:cursor-not-allowed disabled:opacity-60">
+          {processingDecision === 'accepted' ? 'Accepting...' : 'Accept and generate QR'}
+        </button>
+        <button type="button" disabled={isProcessing} onClick={onDecline} className="btn-secondary flex-1 min-w-32 disabled:cursor-not-allowed disabled:opacity-60">
+          {processingDecision === 'declined' ? 'Declining...' : 'Decline'}
+        </button>
       </div>
     </article>
   )

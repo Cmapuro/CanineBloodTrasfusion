@@ -107,6 +107,19 @@ export function AuthProvider({ children }) {
     }
   }, [user])
 
+  const acceptRegistration = useCallback((response) => {
+    if (response.user?.role !== backendRoles.donor || !response.token) {
+      throw new Error('The donor account could not be signed in.')
+    }
+
+    const userData = normalizeUser(response.user)
+    setUser(userData)
+    setError(null)
+    localStorage.setItem('authToken', response.token)
+    localStorage.setItem('user', JSON.stringify(userData))
+    return userData
+  }, [])
+
   /**
    * Logout function - Clears user data
    */
@@ -165,6 +178,7 @@ export function AuthProvider({ children }) {
     loading,
     error,
     login,
+    acceptRegistration,
     logout,
     updateUserProfile,
     isAuthenticated,

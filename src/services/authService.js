@@ -37,10 +37,7 @@ export const loginUser = async (email, password) => {
  */
 export const registerDonor = async (userData) => {
   try {
-    const response = await apiClient.post('/auth/register', {
-      ...userData,
-      role: 'dog_owner',
-    })
+    const response = await apiClient.post('/auth/register/donor', userData)
     return response.data
   } catch (error) {
     throw error.response?.data || error
@@ -120,6 +117,11 @@ export const getDonorDogs = async () => {
 export const getDonorClinics = async () => {
   const response = await apiClient.get('/donor/clinics')
   return response.data.clinics
+}
+
+export const getDonorDonationHistory = async () => {
+  const response = await apiClient.get('/donor/donation-history')
+  return response.data.donations
 }
 
 export const createDonorDog = async (dog) => {
