@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import DonorLayout from '../../components/layout/DonorLayout'
-import { getDonorMatches, respondToDonorMatch } from '../../services/relayService'
+import { getDonorMatches, respondToDonorMatch, updateEmergencyLocationSharing } from '../../services/relayService'
 import QRCode from 'qrcode'
 
 function RequestIcon({ type }) {
@@ -58,7 +58,11 @@ export function EmergencyDonorRequestPage() {
     setError('')
     try {
       const result = await respondToDonorMatch(matchId, decision)
-      setRequests((current) => current.filter((request) => request.match_id !== matchId))
+      setRequests((current) => decision === 'accepted'
+        ? current.map((request) => request.match_id === matchId
+          ? { ...request, status: 'accepted', location_permission_status: 'not_requested' }
+          : request)
+        : current.filter((request) => request.match_id !== matchId))
       if (decision === 'accepted') {
         const qrDataUrl = await QRCode.toDataURL(result.qr_payload, {
           width: 240,
@@ -74,13 +78,61 @@ export function EmergencyDonorRequestPage() {
     }
   }
 
+  const shareLocation = async (request) => {
+    setResponding(request.match_id)
+    setError('')
+    if (!navigator.geolocation) {
+      setError('This device does not support location services. You can continue without sharing your location.')
+      setResponding(null)
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      try {
+        const result = await updateEmergencyLocationSharing(request.match_id, {
+          consent: true,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        })
+        setRequests((current) => current.map((item) => item.match_id === request.match_id
+          ? { ...item, location_permission_status: result.location_permission_status, location_expires_at: result.location_expires_at }
+          : item))
+      } catch (shareError) {
+        setError(shareError.response?.data?.message || 'Unable to share your location. You can retry or keep it private.')
+      } finally {
+        setResponding(null)
+      }
+    }, (geoError) => {
+      const message = geoError.code === 1
+        ? 'Location permission was denied. Your location was not shared.'
+        : 'Your current location is unavailable. Your location was not shared.'
+      setError(message)
+      setResponding(null)
+    }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 })
+  }
+
+  const setLocationPermission = async (request, consent) => {
+    setResponding(request.match_id)
+    setError('')
+    try {
+      const result = await updateEmergencyLocationSharing(request.match_id, { consent })
+      setRequests((current) => current.map((item) => item.match_id === request.match_id
+        ? { ...item, location_permission_status: result.location_permission_status, location_expires_at: result.location_expires_at }
+        : item))
+    } catch (permissionError) {
+      setError(permissionError.response?.data?.message || 'Unable to update your location permission.')
+    } finally {
+      setResponding(null)
+    }
+  }
+
   return (
     <DonorLayout>
       <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-blood-red">Donor coordination</p>
           <h1 className="mt-2 text-4xl font-extrabold text-gray-900">Emergency Donor Requests</h1>
-          <p className="mt-2 max-w-2xl text-gray-600">Review requests approved by a partner clinic and decide whether your verified dog can help.</p>
+          <p className="mt-2 max-w-2xl text-gray-600">Review emergency requests and decide whether your verified dog can help. Your location is never shared unless you grant permission for that request.</p>
         </div>
         <button type="button" onClick={loadRequests} className="btn-secondary">Refresh requests</button>
       </div>
@@ -93,7 +145,7 @@ export function EmergencyDonorRequestPage() {
         <div className="card py-20 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600"><RequestIcon type="blood" /></div>
           <h2 className="mt-5 text-xl font-bold text-gray-900">No active emergency requests</h2>
-          <p className="mx-auto mt-2 max-w-md text-gray-500">When a clinic approves your donor for a compatible request, it will appear here.</p>
+          <p className="mx-auto mt-2 max-w-md text-gray-500">A request from a clinic will appear here. You decide whether to participate and whether to share a temporary location.</p>
         </div>
       ) : (
         <div className="space-y-5">
@@ -111,7 +163,7 @@ export function EmergencyDonorRequestPage() {
                   {request.clinic?.address && <p className="mt-4 text-sm text-gray-600">{request.clinic.address}</p>}
                   {request.clinic?.phone && <p className="text-sm text-gray-500">{request.clinic.phone}</p>}
                 </div>
-                <span className="badge badge-danger self-start">{request.urgency_level}</span>
+                <span className="badge badge-danger self-start">{request.status === 'accepted' ? 'Accepted' : request.urgency_level}</span>
               </div>
 
               <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4 sm:p-6">
@@ -119,15 +171,45 @@ export function EmergencyDonorRequestPage() {
                 <div className="rounded-2xl bg-gray-50 p-4"><p className="text-xs text-gray-500">Breed / weight</p><p className="font-bold text-gray-900">{request.patient_breed || 'Not specified'}</p><p className="text-sm text-gray-500">{request.patient_weight_kg ? `${request.patient_weight_kg} kg` : 'Weight not specified'}</p></div>
                 <div className="flex items-center gap-3 rounded-2xl bg-gray-50 p-4"><span className="text-blood-red"><RequestIcon type="blood" /></span><div><p className="text-xs text-gray-500">Blood needed</p><p className="font-bold text-gray-900">{request.blood_type}</p></div></div>
                 <div className="rounded-2xl bg-gray-50 p-4"><p className="text-xs text-gray-500">Units / donor</p><p className="font-bold text-gray-900">{request.units_needed || 1} unit{request.units_needed === 1 ? '' : 's'} · {request.donor_name}</p><p className="text-sm text-emerald-700">{request.compatibility_score}% compatible</p></div>
+                <div className="rounded-2xl bg-gray-50 p-4"><p className="text-xs text-gray-500">Approximate distance / travel</p><p className="font-bold text-gray-900">{request.distance_km === null || request.distance_km === undefined ? 'Unavailable' : `${request.distance_km} km`}</p><p className="text-sm text-gray-500">{request.travel_time_minutes ? `${request.travel_time_minutes} min` : 'Travel time unavailable'}</p></div>
+                <div className="rounded-2xl bg-gray-50 p-4"><p className="text-xs text-gray-500">Respond by</p><p className="font-bold text-gray-900">{request.response_deadline ? new Date(request.response_deadline).toLocaleString() : 'No active deadline'}</p></div>
               </div>
 
               {request.notes && <p className="px-5 text-sm text-gray-600 sm:px-6"><strong className="text-gray-900">Clinic notes:</strong> {request.notes}</p>}
               <div className="px-5 pb-5 sm:px-6"><ClinicMap clinic={request.clinic} /></div>
 
-              <div className="flex flex-col gap-3 border-t border-gray-100 p-5 sm:flex-row sm:justify-end sm:p-6">
-                <button type="button" disabled={responding === request.match_id} onClick={() => respond(request.match_id, 'declined')} className="btn-secondary sm:min-w-40">Decline</button>
-                <button type="button" disabled={responding === request.match_id} onClick={() => respond(request.match_id, 'accepted')} className="btn-primary sm:min-w-40">{responding === request.match_id ? 'Processing...' : 'Accept and generate QR'}</button>
-              </div>
+              {request.status === 'accepted' ? (
+                <div className="border-t border-gray-100 p-5 sm:p-6">
+                  <p className="font-semibold text-gray-900">Location sharing: {request.location_permission_status || 'not requested'}</p>
+                  <p className="mt-1 max-w-2xl text-sm text-gray-600">Sharing lets {request.clinic?.name || 'the requesting clinic'} see your current location for this emergency only. Access expires automatically; you can revoke it sooner. Your home address is not shared.</p>
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                    {request.location_permission_status === 'granted' ? (
+                      <button type="button" disabled={responding === request.match_id} onClick={() => setLocationPermission(request, false)} className="btn-secondary">
+                        {responding === request.match_id ? 'Updating…' : 'Revoke location permission'}
+                      </button>
+                    ) : (
+                      <>
+                        <button type="button" disabled={responding === request.match_id} onClick={() => shareLocation(request)} className="btn-primary">
+                          {responding === request.match_id ? 'Waiting for location…' : 'Share location for this request'}
+                        </button>
+                        <button type="button" disabled={responding === request.match_id} onClick={() => setLocationPermission(request, false)} className="btn-secondary">
+                          Do not share location
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  {request.location_expires_at && request.location_permission_status === 'granted' && (
+                    <p className="mt-3 text-xs text-gray-500">Temporary sharing expires {new Date(request.location_expires_at).toLocaleString()}.</p>
+                  )}
+                </div>
+              ) : request.status === 'notified' ? (
+                <div className="flex flex-col gap-3 border-t border-gray-100 p-5 sm:flex-row sm:justify-end sm:p-6">
+                  <button type="button" disabled={responding === request.match_id} onClick={() => respond(request.match_id, 'declined')} className="btn-secondary sm:min-w-40">Decline</button>
+                  <button type="button" disabled={responding === request.match_id} onClick={() => respond(request.match_id, 'accepted')} className="btn-primary sm:min-w-40">{responding === request.match_id ? 'Processing...' : 'Accept and generate QR'}</button>
+                </div>
+              ) : (
+                <p className="border-t border-gray-100 px-5 py-4 text-sm text-gray-600 sm:px-6">Request status: {request.status?.replaceAll('_', ' ')}</p>
+              )}
             </article>
           ))}
         </div>

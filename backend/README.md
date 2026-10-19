@@ -56,3 +56,26 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## CanineLink emergency donor locations
+
+Donor coordinates are encrypted before storage in `donor_locations`. Clinic map endpoints return donor coordinates only for the clinic's own accepted, active emergency requests when the owner has explicitly granted temporary sharing. The general nearby-clinics endpoint never returns donor locations. Approximate distances are calculated only when a recent location is available and the owner has opted into distance estimates; travel time is `unavailable` unless a routing provider is configured (none is configured by default).
+
+The owner location-sharing page controls the optional distance-estimate consent and encrypted location update. Emergency request acceptance is separate from temporary location permission; owners can deny or revoke that permission at any time. Temporary access expires after `CANINELINK_TEMPORARY_LOCATION_HOURS`; stale locations older than `CANINELINK_LOCATION_MAX_AGE_MINUTES` are never returned. `CANINELINK_RESPONSE_WINDOW_MINUTES` controls how long each relayed donor has to respond. An optional veterinarian-approved donor weight threshold can be set with `CANINELINK_MINIMUM_DONOR_WEIGHT_KG`; no medical threshold is assumed when it is unset.
+
+### API endpoints
+
+- `GET /api/clinic/matches` — clinic staff only; returns the clinic's emergency donor matches and only currently authorized coordinates.
+- `PUT /api/donor/dogs/{dogId}/location-sharing` — dog owner only; grants or revokes approximate-distance consent.
+- `PUT /api/donor/dogs/{dogId}/location` — dog owner only; saves an encrypted current location when approximate-distance consent is enabled.
+- `GET /api/donor/matches` — dog owner only; returns that owner's emergency requests and permission statuses.
+- `POST /api/matches/{match}/respond` — the matched owner accepts or declines.
+- `PUT /api/matches/{match}/location-sharing` — the matched owner grants, denies, or revokes request-specific temporary access.
+- `POST /api/emergency-requests/{emergencyRequest}/cancel` — requesting clinic staff only; cancels and ends location access.
+- `POST /api/emergency-requests/{emergencyRequest}/complete` — requesting clinic staff only; records the donation and ends location access.
+
+### Run and test
+
+From the repository root, run `npm install` and `npm run dev` for React. In `backend`, run `composer install` if needed, `php artisan migrate`, then `php artisan serve`. Run `php artisan schedule:work` in a separate backend terminal so response timeouts relay to the next donor and expired temporary locations are cleaned up automatically. In production, configure Laravel's scheduler to run `schedule:run` every minute.
+
+Run the focused backend privacy and relay tests with `php artisan test --filter=EmergencyLocationSharingTest` and `php artisan test --filter=NearbyLocationsTest`. Configure `APP_KEY` before accepting location updates; it is used to encrypt and decrypt coordinates.

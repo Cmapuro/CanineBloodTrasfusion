@@ -14,3 +14,8 @@ export const updateDonorLocationSharing = async (dogId, consent) => {
   const response = await apiClient.put(`/donor/dogs/${dogId}/location-sharing`, { consent })
   return response.data
 }
+
+export const updateDonorLocation = async (dogId, coordinates) => {
+  const response = await apiClient.put(`/donor/dogs/${dogId}/location`, coordinates)
+  return response.data
+}

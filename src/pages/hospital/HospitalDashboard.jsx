@@ -53,6 +53,7 @@ export function HospitalDashboard() {
 
   const summaryValue = (key) => loadingSummary ? '...' : summaryError ? '—' : (summary?.[key] ?? 0)
   const availableDonors = donors.filter((dog) => dog.eligibility_status === 'verified' && dog.availability_status === 'available')
+  const pendingMatches = matches.filter((match) => ['queued', 'notified'].includes(match.status))
 
   const approve = async (matchId) => {
     setBusyMatch(matchId)
@@ -86,18 +87,18 @@ export function HospitalDashboard() {
         <DashboardCard title="Completed Transfusions" value={summaryValue('completed_transfusions')} icon="LS" color="blue" />
       </div>
 
-      {matches.length > 0 && (
+      {pendingMatches.length > 0 && (
         <section className="card mb-10 border-rose-200 bg-rose-50/60">
           <div className="flex items-start justify-between gap-4 mb-5">
             <div>
-              <p className="text-sm font-bold uppercase tracking-wide text-blood-red">Cross-clinic relay</p>
-              <h2 className="text-2xl font-bold text-gray-900">Donor approvals waiting for Clinic 2</h2>
-              <p className="text-gray-600 mt-1">Review compatible donors before they are offered to the owner.</p>
+              <p className="text-sm font-bold uppercase tracking-wide text-blood-red">Emergency donor relay</p>
+              <h2 className="text-2xl font-bold text-gray-900">Active donor requests</h2>
+              <p className="text-gray-600 mt-1">One owner at a time receives a request. Donor location remains private until the owner accepts and explicitly shares it.</p>
             </div>
-            <span className="badge badge-warning">{matches.length} pending</span>
+            <span className="badge badge-warning">{pendingMatches.length} active</span>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            {matches.map((match) => (
+            {pendingMatches.map((match) => (
               <div key={match.match_id} className="rounded-2xl bg-white border border-red-100 p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -110,8 +111,13 @@ export function HospitalDashboard() {
                   <span className="text-gray-600">Needed: <strong>{match.blood_type}</strong></span>
                   <span className="text-gray-600">Donor: <strong>{match.donor_blood_type}</strong></span>
                 </div>
-                <button type="button" disabled={busyMatch === match.match_id || match.status === 'notified'} onClick={() => approve(match.match_id)} className="btn-primary w-full mt-5">
-                  {match.status === 'notified' ? 'Donor notified' : busyMatch === match.match_id ? 'Approving...' : 'Approve donor'}
+                <button
+                  type="button"
+                  disabled={busyMatch === match.match_id || match.status === 'notified' || matches.some((item) => item.request_id === match.request_id && ['notified', 'accepted'].includes(item.status))}
+                  onClick={() => approve(match.match_id)}
+                  className="btn-primary w-full mt-5"
+                >
+                  {match.status === 'notified' ? 'Awaiting owner response' : matches.some((item) => item.request_id === match.request_id && ['notified', 'accepted'].includes(item.status)) ? 'Queued for relay' : busyMatch === match.match_id ? 'Approving...' : 'Notify this donor'}
                 </button>
               </div>
             ))}

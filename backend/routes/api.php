@@ -40,10 +40,13 @@ Route::middleware(['auth:sanctum', 'role:clinic_admin,clinic_staff'])->prefix('c
 Route::middleware('auth:sanctum')->post('/auth/logout', [AuthController::class, 'logout']);
 Route::middleware('auth:sanctum')->post('/emergency-requests', [EmergencyRequestController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/emergency-requests', [EmergencyRequestController::class, 'index']);
-Route::middleware('auth:sanctum')->get('/clinic/matches', [EmergencyRequestController::class, 'clinicMatches']);
+Route::middleware(['auth:sanctum', 'role:clinic_admin,clinic_staff'])->get('/clinic/matches', [EmergencyRequestController::class, 'clinicMatches']);
+Route::middleware(['auth:sanctum', 'role:clinic_admin,clinic_staff'])->post('/emergency-requests/{emergencyRequest}/cancel', [EmergencyRequestController::class, 'cancel']);
+Route::middleware(['auth:sanctum', 'role:clinic_admin,clinic_staff'])->post('/emergency-requests/{emergencyRequest}/complete', [EmergencyRequestController::class, 'complete']);
 Route::middleware('auth:sanctum')->post('/matches/{match}/approve', [EmergencyRequestController::class, 'approveMatch']);
 Route::middleware('auth:sanctum')->get('/donor/matches', [EmergencyRequestController::class, 'donorMatches']);
 Route::middleware('auth:sanctum')->post('/matches/{match}/respond', [EmergencyRequestController::class, 'respondAsDonor']);
+Route::middleware('auth:sanctum')->put('/matches/{match}/location-sharing', [EmergencyRequestController::class, 'updateLocationSharing']);
 Route::middleware('auth:sanctum')->get('/donor/verification-codes', [EmergencyRequestController::class, 'donorVerificationCodes']);
 Route::middleware('auth:sanctum')->post('/donor/verification-codes/{verificationCode}/archive', [EmergencyRequestController::class, 'archiveVerificationCode']);
 Route::middleware(['auth:sanctum', 'role:clinic_admin,clinic_staff', 'throttle:10,1'])
@@ -59,3 +62,5 @@ Route::middleware(['auth:sanctum', 'role:dog_owner'])
     ->get('/donor/location-sharing', [NearbyLocationController::class, 'donorSharingSettings']);
 Route::middleware(['auth:sanctum', 'role:dog_owner'])
     ->put('/donor/dogs/{dogId}/location-sharing', [NearbyLocationController::class, 'updateDonorSharingConsent']);
+Route::middleware(['auth:sanctum', 'role:dog_owner'])
+    ->put('/donor/dogs/{dogId}/location', [NearbyLocationController::class, 'updateDonorLocation']);

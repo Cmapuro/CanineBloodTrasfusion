@@ -16,8 +16,17 @@ export function DonationHistoryPage() {
     setLoading(true)
     setError('')
     try {
-      const donations = await getDonorDonationHistory()
-      setDonationData(Array.isArray(donations) ? donations : [])
+      const payload = await getDonorDonationHistory()
+      const donations = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.donations)
+          ? payload.donations
+          : []
+
+      setDonationData(donations.map((donation) => ({
+        ...donation,
+        recipient_name: donation.recipient_name || donation.patient_name || '',
+      })))
     } catch (requestError) {
       setError(requestError.response?.data?.message || requestError.message || 'Unable to load donation history.')
     } finally {

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Dog;
+use App\Services\DonorLocationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -67,94 +69,6 @@ class NearbyLocationController extends Controller
             }
         }
 
-        if ($type !== 'clinic' && ($filters['eligibility'] ?? 'verified') === 'verified') {
-            $dogs = DB::table('dogs as d')
-                ->join('clinics as c', 'c.clinic_id', '=', 'd.registered_clinic_id')
-                ->join('blood_types as bt', 'bt.blood_type_id', '=', 'd.blood_type_id')
-                ->where('c.is_active', true)
-                ->whereNotNull('c.latitude')
-                ->whereNotNull('c.longitude')
-                ->where('d.eligibility_status', 'verified')
-                ->where('d.location_sharing_consent', true)
-                ->where(function ($query) use ($filters) {
-                    if (($filters['availability'] ?? 'available') === 'available') {
-                        $query->where('d.availability_status', 'available')
-                            ->where(function ($eligibleDate) {
-                                $eligibleDate->whereNull('d.next_eligible_date')
-                                    ->orWhereDate('d.next_eligible_date', '<=', now()->toDateString());
-                            });
-                    }
-                })
-                ->when(! empty($filters['blood_type']), fn ($query) => $query->where('bt.code', $filters['blood_type']))
-                ->where(function ($query) use ($user) {
-                    $query->where('d.registered_clinic_id', $user->clinic_id)
-                        ->orWhereExists(function ($grant) use ($user) {
-                            $grant->selectRaw('1')
-                                ->from('access_grants as ag')
-                                ->join('access_requests as ar', 'ar.access_request_id', '=', 'ag.access_request_id')
-                                ->whereColumn('ag.owning_clinic_id', 'd.registered_clinic_id')
-                                ->where('ag.requesting_clinic_id', $user->clinic_id)
-                                ->whereColumn('ar.requesting_clinic_id', 'ag.requesting_clinic_id')
-                                ->whereColumn('ar.owning_clinic_id', 'ag.owning_clinic_id')
-                                ->where('ar.status', 'approved')
-                                ->whereNull('ag.revoked_at')
-                                ->where(function ($expires) {
-                                    $expires->whereNull('ag.expires_at')
-                                        ->orWhere('ag.expires_at', '>', now());
-                                })
-                                ->where(function ($dogGrant) {
-                                    $dogGrant->whereNull('ag.dog_id')
-                                        ->orWhereColumn('ag.dog_id', 'd.dog_id');
-                                })
-                                ->where(function ($requestDog) {
-                                    $requestDog->whereNull('ar.dog_id')
-                                        ->orWhereColumn('ar.dog_id', 'd.dog_id');
-                                });
-                        });
-                })
-                ->get([
-                    'd.registered_clinic_id',
-                    'd.availability_status',
-                    'bt.code as blood_type',
-                    'c.latitude',
-                    'c.longitude',
-                ]);
-
-            $donorGroups = [];
-            foreach ($dogs as $dog) {
-                $clinicLatitude = (float) $dog->latitude;
-                $clinicLongitude = (float) $dog->longitude;
-                $distance = $this->distanceKm($latitude, $longitude, $clinicLatitude, $clinicLongitude);
-                if ($distance > $radius) {
-                    continue;
-                }
-
-                $key = implode('|', [
-                    $dog->registered_clinic_id,
-                    $dog->blood_type,
-                    $dog->availability_status,
-                ]);
-                if (! isset($donorGroups[$key])) {
-                    $donorGroups[$key] = [
-                        'id' => 'donor-'.$key,
-                        'type' => 'donor',
-                        'name' => 'Approximate donor area',
-                        'blood_type' => $dog->blood_type,
-                        'availability_status' => $dog->availability_status,
-                        'donor_count' => 0,
-                        'latitude' => round($clinicLatitude, 2),
-                        'longitude' => round($clinicLongitude, 2),
-                        'distance_km' => round($distance, 1),
-                        'approximate' => true,
-                    ];
-                }
-
-                $donorGroups[$key]['donor_count']++;
-            }
-
-            array_push($locations, ...array_values($donorGroups));
-        }
-
         usort($locations, fn (array $left, array $right) => $left['distance_km'] <=> $right['distance_km']);
 
         return response()->json([
@@ -171,15 +85,54 @@ class NearbyLocationController extends Controller
         abort_unless($user->role === 'dog_owner', 403);
 
         $dogs = DB::table('dogs')
+            ->leftJoin('donor_locations', 'donor_locations.dog_id', '=', 'dogs.dog_id')
             ->where('owner_user_id', $user->user_id)
             ->orderBy('name')
-            ->get(['dog_id', 'name', 'eligibility_status', 'availability_status', 'location_sharing_consent'])
+            ->get([
+                'dogs.dog_id', 'dogs.name', 'dogs.eligibility_status', 'dogs.availability_status',
+                'dogs.location_sharing_consent', 'dogs.location_sharing_consent_at',
+                'donor_locations.captured_at as location_updated_at',
+            ])
             ->map(fn ($dog) => [
                 ...((array) $dog),
                 'location_sharing_consent' => (bool) $dog->location_sharing_consent,
             ]);
 
         return response()->json(['dogs' => $dogs]);
+    }
+
+    public function updateDonorLocation(Request $request, int $dogId, DonorLocationService $locations): JsonResponse
+    {
+        $user = $request->user();
+        abort_unless($user->role === 'dog_owner', 403);
+        $data = $request->validate([
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+        ]);
+
+        $dog = Dog::withoutGlobalScopes()
+            ->where('dog_id', $dogId)
+            ->where('owner_user_id', $user->user_id)
+            ->firstOrFail();
+        abort_unless($dog->location_sharing_consent, 403, 'Enable distance-estimate sharing before saving a location.');
+
+        DB::transaction(function () use ($locations, $dog, $data, $user) {
+            $locations->store($dog, (float) $data['latitude'], (float) $data['longitude']);
+            DB::table('audit_log')->insert([
+                'user_id' => $user->user_id,
+                'clinic_id' => $dog->registered_clinic_id,
+                'action' => 'donor_approximate_location_updated',
+                'resource_type' => 'dog',
+                'resource_id' => $dog->dog_id,
+                'details' => json_encode(['coordinates_encrypted' => true], JSON_THROW_ON_ERROR),
+                'created_at' => now(),
+            ]);
+        });
+
+        return response()->json([
+            'message' => 'Your encrypted location can now be used to calculate approximate donor distance.',
+            'location_updated_at' => now(),
+        ]);
     }
 
     public function updateDonorSharingConsent(Request $request, int $dogId): JsonResponse
@@ -201,7 +154,20 @@ class NearbyLocationController extends Controller
                 return;
             }
 
-            DB::table('dogs')->where('dog_id', $dogId)->update(['location_sharing_consent' => $consent]);
+            DB::table('dogs')->where('dog_id', $dogId)->update([
+                'location_sharing_consent' => $consent,
+                'location_sharing_consent_at' => $consent ? now() : null,
+            ]);
+            if (! $consent) {
+                DB::table('request_matches')
+                    ->where('dog_id', $dogId)
+                    ->where('location_permission_status', 'granted')
+                    ->update([
+                        'location_permission_status' => 'revoked',
+                        'location_expires_at' => now(),
+                    ]);
+                DB::table('donor_locations')->where('dog_id', $dogId)->delete();
+            }
             DB::table('audit_log')->insert([
                 'user_id' => $user->user_id,
                 'clinic_id' => $dog->registered_clinic_id,

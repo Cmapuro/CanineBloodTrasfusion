@@ -20,6 +20,11 @@ export const respondToDonorMatch = async (matchId, decision) => {
   return response.data
 }
 
+export const updateEmergencyLocationSharing = async (matchId, permission) => {
+  const response = await apiClient.put(`/matches/${matchId}/location-sharing`, permission)
+  return response.data
+}
+
 export const getDonorVerificationCodes = async () => {
   const response = await apiClient.get('/donor/verification-codes')
   return response.data
