@@ -292,6 +292,11 @@ export function Sidebar() {
       admin: [
         baseItem,
         {
+          icon: 'RP',
+          label: 'Chatbot Knowledge',
+          path: '/admin/chatbot-knowledge',
+        },
+        {
           icon: 'HP',
           label: 'Veterinary Clinics',
           path: '/admin/manage-hospitals',

@@ -10,6 +10,7 @@ import { NotificationAlert } from '../common/NotificationAlert'
 import { FloatingNotification } from '../common/FloatingNotification'
 import { getDonorMatches, respondToDonorMatch } from '../../services/relayService'
 import QRCode from 'qrcode'
+import ChatbotWidget from '../common/ChatbotWidget'
 
 /**
  * DonorLayout Component
@@ -187,6 +188,7 @@ export function DonorLayout({ children }) {
       >
         <Footer />
       </div>
+      <ChatbotWidget />
     </div>
   )
 }

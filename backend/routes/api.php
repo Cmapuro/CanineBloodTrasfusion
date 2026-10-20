@@ -11,6 +11,26 @@ use App\Http\Controllers\DonorProfileController;
 use App\Http\Controllers\ClinicDonorReviewController;
 use App\Http\Controllers\ClinicDashboardController;
 use App\Http\Controllers\ClinicDirectoryController;
+use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\ChatbotKnowledgeController;
+
+Route::middleware('throttle:20,1')->post('/chatbot/chat', [ChatbotController::class, 'chat']);
+Route::middleware('throttle:30,1')->post('/chatbot/feedback', [ChatbotController::class, 'feedback']);
+
+Route::middleware(['auth:sanctum', 'role:gov_admin'])
+    ->prefix('admin/chatbot')
+    ->group(function () {
+        Route::get('/knowledge', [ChatbotKnowledgeController::class, 'index']);
+        Route::post('/faqs', [ChatbotKnowledgeController::class, 'store']);
+        Route::put('/faqs/{faq}', [ChatbotKnowledgeController::class, 'update']);
+        Route::post('/faqs/{faq}/approve', [ChatbotKnowledgeController::class, 'approve']);
+        Route::post('/faqs/{faq}/disable', [ChatbotKnowledgeController::class, 'disable']);
+        Route::delete('/faqs/{faq}', [ChatbotKnowledgeController::class, 'destroy']);
+        Route::get('/faqs/{faq}/history', [ChatbotKnowledgeController::class, 'history']);
+        Route::post('/faqs/{faq}/rollback/{version}', [ChatbotKnowledgeController::class, 'rollback']);
+        Route::post('/suggestions/{suggestion}/review', [ChatbotKnowledgeController::class, 'reviewSuggestion']);
+        Route::post('/evaluate', [ChatbotKnowledgeController::class, 'evaluate']);
+    });
 
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/register/donor', [AuthController::class, 'registerDonor']);

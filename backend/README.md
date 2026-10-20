@@ -79,3 +79,15 @@ The owner location-sharing page controls the optional distance-estimate consent 
 From the repository root, run `npm install` and `npm run dev` for React. In `backend`, run `composer install` if needed, `php artisan migrate`, then `php artisan serve`. Run `php artisan schedule:work` in a separate backend terminal so response timeouts relay to the next donor and expired temporary locations are cleaned up automatically. In production, configure Laravel's scheduler to run `schedule:run` every minute.
 
 Run the focused backend privacy and relay tests with `php artisan test --filter=EmergencyLocationSharingTest` and `php artisan test --filter=NearbyLocationsTest`. Configure `APP_KEY` before accepting location updates; it is used to encrypt and decrypt coordinates.
+
+### Chatbot knowledge and privacy
+
+The shared chatbot widget is available on public pages and in the donor and clinic portals. Chatbot responses use only approved, unexpired FAQs permitted for the requester's role. They do not query donor, owner, request, or clinic-private records. `gov_admin` is the only role allowed to manage chatbot knowledge.
+
+After applying migrations, run `php artisan db:seed --class=ChatbotFaqSeeder` to load the initial reviewed general FAQs (the main `db:seed` command also runs this seeder). Administrators can review drafts, approve/disable/delete FAQs, inspect version history, restore an older answer as a draft, review suggested FAQ topics, and run a retrieval check at `/admin/chatbot-knowledge`.
+
+OpenAI is optional. To enable it, configure `OPENAI_API_KEY` on the Laravel server (never in React or a `VITE_` variable), optionally set `OPENAI_MODEL` and `OPENAI_BASE_URL`, and clear Laravel's config cache. Without a key, approved FAQ matches are returned directly and unmatched questions receive a safe fallback. When enabled, only the current question and a small set of approved FAQ references are sent; messages that appear personal, account-specific, or contain proper names are not sent to the provider. Review the provider's current data-retention and processing terms before enabling it. This implementation does not set provider-side retention controls; the provider's configured account and current terms apply. CanineLink does not persist chat transcripts or raw unanswered questions; it stores feedback ratings and keyed question fingerprints with topic-level aggregates instead.
+
+API routes: `POST /api/chatbot/chat`, `POST /api/chatbot/feedback`, and the `auth:sanctum` + `role:gov_admin` management routes under `/api/admin/chatbot`. Public requests are rate-limited, and no model-generated answer can publish knowledge or perform an application action. `caninelink:chatbot-prune` deletes feedback and unanswered-question aggregates after 180 days; it is scheduled daily with Laravel's scheduler.
+
+Run chatbot privacy and knowledge-management tests with `php artisan test --filter=ChatbotTest`.

@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(ChatbotFaqSeeder::class);
+
         foreach (['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'] as $code) {
             BloodType::updateOrCreate(['code' => $code], ['description' => "Canine blood type {$code}"]);
         }

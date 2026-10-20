@@ -8,6 +8,7 @@ import { Sidebar } from '../common/Sidebar'
 import { Footer } from '../common/Footer'
 import { NotificationAlert } from '../common/NotificationAlert'
 import { FloatingNotification } from '../common/FloatingNotification'
+import ChatbotWidget from '../common/ChatbotWidget'
 
 /**
  * HospitalLayout Component
@@ -71,6 +72,7 @@ export function HospitalLayout({ children }) {
       >
         <Footer />
       </div>
+      <ChatbotWidget />
     </div>
   )
 }

@@ -2,6 +2,7 @@ import React from 'react'
 import { Navbar } from '../common/Navbar'
 import { Footer } from '../common/Footer'
 import { NotificationAlert } from '../common/NotificationAlert'
+import ChatbotWidget from '../common/ChatbotWidget'
 
 /**
  * PublicLayout Component
@@ -25,6 +26,7 @@ export function PublicLayout({ children }) {
 
       {/* Footer */}
       <Footer />
+      <ChatbotWidget />
     </div>
   )
 }

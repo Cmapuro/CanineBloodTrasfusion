@@ -44,6 +44,7 @@ import ManageDonorsPage from './pages/admin/ManageDonorsPage'
 import BloodInventoryManagementPage from './pages/admin/BloodInventoryManagementPage'
 import EmergencyRequestsMonitoringPage from './pages/admin/EmergencyRequestsMonitoringPage'
 import ReportsAnalyticsPage from './pages/admin/ReportsAnalyticsPage'
+import ChatbotKnowledgePage from './pages/admin/ChatbotKnowledgePage'
 
 /**
  * App Component - Main application component that sets up routing and context providers
@@ -295,6 +296,14 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="admin">
                   <ReportsAnalyticsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/chatbot-knowledge"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <ChatbotKnowledgePage />
                 </ProtectedRoute>
               }
             />

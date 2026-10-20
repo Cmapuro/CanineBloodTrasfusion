@@ -42,3 +42,5 @@ Schedule::call(function () {
         })
         ->delete();
 })->name('caninelink-emergency-donor-relay')->everyMinute()->withoutOverlapping();
+
+Schedule::command('caninelink:chatbot-prune')->daily()->withoutOverlapping();
